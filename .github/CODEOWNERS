@@ -1,0 +1,45 @@
+# ===========================================
+# CODEOWNERS — Auto-assign PR reviewers by file path
+# ===========================================
+# When a PR touches files matching a pattern, GitHub automatically
+# requests a review from the listed owners.
+#
+# To enforce this, enable "Require review from Code Owners"
+# in the branch protection settings for main/staging/develop.
+# ===========================================
+
+# Default — repo owner reviews anything not covered below
+*                                @cristianjohnn
+
+# Frontend
+/client/                         @cristianjohnn
+/client/src/features/dashboard/  @cristianjohnn
+/client/src/features/assets/     @cristianjohnn
+/client/src/features/assignment/  @cristianjohnn
+
+# Backend
+/server/                         @cristianjohnn
+/server/src/                     @cristianjohnn
+
+# Database schema changes — always require lead review
+/server/prisma/schema.prisma     @cristianjohnn
+
+# Infrastructure & DevOps
+/docker-compose*.yml             @cristianjohnn
+/nginx/                          @cristianjohnn
+/.github/workflows/              @cristianjohnn
+*.Dockerfile                     @cristianjohnn
+
+# Documentation
+/docs/                           @cristianjohnn
+README.md                        @cristianjohnn
+CONTRIBUTING.md                  @cristianjohnn
+
+# ===========================================
+# When you add team members, update like this:
+#
+# /client/                       @cristianjohnn/frontend-team
+# /server/                       @cristianjohnn/backend-team
+# /nginx/                        @cristianjohnn/devops-team
+# /docker-compose*.yml           @cristianjohnn/devops-team
+# ===========================================

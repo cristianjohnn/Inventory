@@ -1,0 +1,29 @@
+{
+  "name": "it-inventory-system",
+  "version": "1.0.0",
+  "description": "IT Inventory Monitoring System — Track, depreciate, and manage IT assets across your organization.",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "db:migrate": "cd server && npx prisma migrate dev",
+    "db:seed": "cd server && npx prisma db seed",
+    "db:studio": "cd server && npx prisma studio",
+    "db:reset": "cd server && npx prisma migrate reset --force",
+    "lint": "eslint . --ext .js,.jsx",
+    "format": "prettier --write \"**/*.{js,jsx,json,css,md}\"",
+    "build": "cd client && npm run build",
+    "docker:dev": "docker compose up -d",
+    "docker:dev:down": "docker compose down",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

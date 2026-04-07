@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================
+// Enums
+// =====================
+
+enum Category {
+  LAPTOP
+  MONITOR
+  SERVER
+  PHONE
+  PRINTER
+  NETWORKING
+  PERIPHERAL
+}
+
+enum AssetStatus {
+  IN_USE
+  AVAILABLE
+  UNDER_REPAIR
+  RETIRED
+}
+
+enum DepreciationMethod {
+  STRAIGHT_LINE
+  DOUBLE_DECLINING
+  UNITS_OF_PRODUCTION
+}
+
+// =====================
+// Models
+// =====================
+
+model Asset {
+  id                 Int                @id @default(autoincrement())
+  name               String
+  assetTag           String             @unique
+  category           Category
+  serialNumber       String             @unique
+  purchaseDate       DateTime
+  purchasePrice      Float
+  salvageValue       Float
+  usefulLifeYears    Int
+  depreciationMethod DepreciationMethod
+  totalUnits         Int?
+  unitsUsed          Int?
+  assignedEmployee   String?
+  status             AssetStatus        @default(AVAILABLE)
+  location           String?
+  warrantyExpiry     DateTime?
+  notes              String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([status])
+  @@index([category])
+  @@index([assignedEmployee])
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  assetId      Int
+  action       String
+  employeeName String?
+  details      String?
+  performedBy  String   @default("System")
+  timestamp    DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+}
