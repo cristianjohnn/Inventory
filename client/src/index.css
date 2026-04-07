@@ -7,6 +7,8 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --color-primary-50: #ecfdf5;
@@ -34,26 +36,42 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --color-bg-start: #f8fafc;
+  --color-bg-end: #e2e8f0;
+  --color-text: #0f172a;
+
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(255, 255, 255, 1);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  --card-hover-bg: rgba(255, 255, 255, 1);
+}
+
+:root.dark {
+  --color-bg-start: #0f172a;
+  --color-bg-end: #020617;
+  --color-text: #f8fafc;
+
+  --card-bg: rgba(30, 41, 59, 0.65);
+  --card-border: rgba(248, 250, 252, 0.08);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: 0 8px 12px -2px rgba(0, 0, 0, 0.1), 0 32px 64px -16px rgba(0, 0, 0, 0.5);
+  --card-hover-bg: rgba(30, 41, 59, 0.8);
+}
+
 body {
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Dark mode default */
-body {
-  background-color: #09090b;
-  color: #fafafa;
-}
-
-body.light {
-  background-color: #ffffff;
-  color: #09090b;
+  transition: background 0.4s ease, color 0.4s ease;
+  background-attachment: fixed;
+  background: linear-gradient(135deg, var(--color-bg-start) 0%, var(--color-bg-end) 100%);
+  color: var(--color-text);
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -61,37 +79,37 @@ body.light {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  border-radius: 3px;
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 4px;
 }
 
-body.light ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
 }
 
-/* Glass card effect */
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Glass card effect Premium */
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  background: var(--card-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--card-shadow);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.light .glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-body.light .glass-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: var(--card-hover-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
 }
 
 /* Animations */

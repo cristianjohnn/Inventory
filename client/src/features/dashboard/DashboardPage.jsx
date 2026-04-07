@@ -12,16 +12,21 @@ import Badge from '../../components/ui/Badge.jsx';
 
 // Components
 const StatCard = ({ icon: Icon, title, value, subtitle, gradient }) => (
-  <div className="glass-card p-5 relative overflow-hidden group">
-    <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 bg-gradient-to-br ${gradient} group-hover:scale-125 transition-transform duration-500`} />
-    <div className="flex items-start justify-between relative z-10">
-      <div>
-        <p className="text-zinc-500 text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-3xl font-bold text-zinc-100">{value}</h3>
-        {subtitle && <p className="text-xs text-zinc-500 mt-2">{subtitle}</p>}
+  <div className="glass-card relative group">
+    <div className="absolute inset-0 overflow-hidden rounded-[20px] pointer-events-none">
+      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 bg-gradient-to-br ${gradient} group-hover:scale-125 transition-transform duration-500`} />
+    </div>
+    <div className="p-5 flex items-start justify-between gap-4 relative z-10">
+      <div className="min-w-0 flex-1">
+        <p className="text-zinc-500 text-sm font-medium mb-1 truncate">{title}</p>
+        <h3 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 truncate">{value}</h3>
+        {subtitle && <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{subtitle}</p>}
       </div>
-      <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} bg-opacity-10 text-white`}>
-        <Icon size={24} />
+      <div className="relative p-3 rounded-xl overflow-hidden shrink-0 text-zinc-900 dark:text-white group-hover:shadow-xl transition-shadow">
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 dark:opacity-30`} />
+        <div className="relative z-10">
+          <Icon size={24} />
+        </div>
       </div>
     </div>
   </div>
@@ -53,10 +58,10 @@ export default function DashboardPage() {
           <Skeleton width="40px" height="40px" className="rounded-xl" />
           <Skeleton width="200px" height="32px" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {Array(5).fill(0).map((_, i) => <SkeletonCard key={i} />)}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Skeleton width="100%" height="300px" className="glass-card" />
             <Skeleton width="100%" height="300px" className="glass-card" />
@@ -100,7 +105,7 @@ export default function DashboardPage() {
             <LayoutDashboard size={24} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text-transparent">
               Dashboard Overview
             </h1>
             <p className="text-sm text-zinc-500">Real-time asset insights and portfolio value</p>
@@ -109,7 +114,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 stagger">
+      <div className="grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 stagger">
         <StatCard
           icon={Monitor}
           title="Total Assets"
@@ -143,13 +148,13 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-in">
+      <div className="grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-in">
         {/* Charts Column */}
-        <div className="lg:col-span-2 space-y-6 flex flex-col">
+        <div className="lg:col-span-2 space-y-6 flex-col">
           
           {/* Portfolio Depreciation */}
-          <div className="glass-card p-6 flex-1 border border-zinc-800/50">
-            <h3 className="text-lg font-semibold text-zinc-200 mb-6 flex items-center gap-2">
+          <div className="glass-card p-6 flex-1 border-zinc-200/50 dark:border-zinc-800/50">
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-6 flex items-center gap-2">
               <Activity size={18} className="text-blue-500" /> Value by Category
             </h3>
             <div className="h-[280px]">
@@ -171,10 +176,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid-cols-1 md:grid-cols-2 gap-6">
             {/* Status Chart */}
-            <div className="glass-card p-6 border border-zinc-800/50">
-              <h3 className="text-lg font-semibold text-zinc-200 mb-2">Asset Status</h3>
+            <div className="glass-card p-6 border-zinc-200/50 dark:border-zinc-800/50">
+              <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Asset Status</h3>
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -191,14 +196,14 @@ export default function DashboardPage() {
             </div>
 
             {/* Monthly Forecast */}
-            <div className="glass-card p-6 border border-zinc-800/50 flex flex-col justify-center">
-              <h3 className="text-lg font-semibold text-zinc-200 mb-6">Depreciation Forecast</h3>
+            <div className="glass-card p-6 border-zinc-200/50 dark:border-zinc-800/50 flex-col justify-center">
+              <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-6">Depreciation Forecast</h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 rounded-xl bg-zinc-900/50">
-                  <span className="text-sm text-zinc-400">Current Portfolio</span>
-                  <span className="font-semibold text-zinc-200">{formatCurrency(portfolio.totalCurrentValue)}</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/50 dark:bg-zinc-900/50">
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400">Current Portfolio</span>
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">{formatCurrency(portfolio.totalCurrentValue)}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <div className="flex justify-between items-center p-3 rounded-xl bg-amber-500/10 border-amber-500/20">
                   <span className="text-sm text-amber-500 font-medium">Next Month Est.</span>
                   <span className="font-semibold text-amber-400">{formatCurrency(portfolio.totalProjectedNextMonth)}</span>
                 </div>
@@ -212,9 +217,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity Sidebar */}
-        <div className="glass-card flex flex-col border border-zinc-800/50 h-[calc(100vh-140px)] sticky top-[88px]">
-          <div className="p-5 border-b border-zinc-800/50">
-            <h3 className="text-lg font-semibold text-zinc-200">Activity Log</h3>
+        <div className="glass-card flex-col border-zinc-200/50 dark:border-zinc-800/50 h-[500px] lg:h-[calc(100vh-140px)] lg:sticky top-[88px]">
+          <div className="p-5 border-b border-zinc-200/50 dark:border-zinc-800/50">
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Activity Log</h3>
             <p className="text-xs text-zinc-500 mt-1">Latest asset movements and updates</p>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
@@ -223,25 +228,25 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-1">
                 {recentActivity.map((log) => (
-                  <div key={log.id} className="p-3 rounded-xl hover:bg-zinc-800/50 transition-colors group">
+                  <div key={log.id} className="p-3 rounded-xl hover:bg-zinc-100/50 dark:bg-zinc-800/50 transition-colors group">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 group-hover:bg-zinc-700 transition-colors">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 group-hover:bg-zinc-700 transition-colors">
                         {log.action}
                       </span>
-                      <span className="text-[10px] text-zinc-500 bg-zinc-900/50 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] text-zinc-500 bg-white/50 dark:bg-zinc-900/50 px-2 py-0.5 rounded-md">
                         {timeAgo(log.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-300 mt-2 line-clamp-2">{log.details}</p>
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-2 line-clamp-2">{log.details}</p>
                     {(log.asset?.name || log.employeeName) && (
-                      <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-zinc-800/50">
+                      <div className="flex-wrap gap-2 mt-2 pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
                         {log.asset?.name && (
-                          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+                          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                             <Monitor size={10} className="text-emerald-500" /> {log.asset.name}
                           </span>
                         )}
                         {log.employeeName && (
-                          <span className="text-[11px] text-zinc-400 flex items-center gap-1">
+                          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                             👤 {log.employeeName}
                           </span>
                         )}

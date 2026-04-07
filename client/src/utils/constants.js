@@ -19,6 +19,21 @@ export const CATEGORY_OPTIONS = [
   { value: 'PERIPHERAL', label: 'Peripheral', icon: '🖱️' },
 ];
 
+export const DEPARTMENT_OPTIONS = [
+  { value: 'ADMIN_DEPARTMENT', label: 'Admin Department' },
+  { value: 'CORPORATE_DEPARTMENT', label: 'Corporate Department' },
+  { value: 'CUSTOMER_CARE', label: 'Customer Care' },
+  { value: 'I_TECH', label: 'I-Tech' },
+  { value: 'I_WALLET', label: 'I-Wallet' },
+  { value: 'IT_DEPARTMENT', label: 'IT Department' },
+  { value: 'IT_SUPPORT', label: 'IT Support' },
+  { value: 'JOINT_VENTURES', label: 'Joint Ventures' },
+  { value: 'MARKETING', label: 'Marketing' },
+  { value: 'REAL_ESTATE', label: 'Real Estate' },
+  { value: 'SECRETARY', label: 'Secretary' },
+  { value: 'EXECUTIVE', label: 'Executive' },
+];
+
 export const DEPRECIATION_METHODS = [
   { value: 'STRAIGHT_LINE', label: 'Straight-Line' },
   { value: 'DOUBLE_DECLINING', label: 'Double Declining Balance' },

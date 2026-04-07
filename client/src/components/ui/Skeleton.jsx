@@ -1,7 +1,7 @@
 export default function Skeleton({ className = '', width, height }) {
   return (
     <div
-      className={`rounded-lg bg-zinc-800 ${className}`}
+      className={`rounded-lg bg-zinc-100 dark:bg-zinc-800 ${className}`}
       style={{
         width,
         height: height || '1rem',
@@ -25,7 +25,7 @@ export function SkeletonCard() {
 
 export function SkeletonRow() {
   return (
-    <div className="flex items-center gap-4 p-4 border-b border-zinc-800/50">
+    <div className="flex items-center gap-4 p-4 border-b border-zinc-200/50 dark:border-zinc-800/50">
       <Skeleton width="2rem" height="2rem" className="rounded-full" />
       <Skeleton width="25%" height="0.875rem" />
       <Skeleton width="15%" height="0.875rem" />

@@ -16,19 +16,19 @@ export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, messa
           <div className="p-2 rounded-full bg-rose-500/10">
             <AlertTriangle size={20} className="text-rose-500" />
           </div>
-          <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
         </div>
-        <p className="text-sm text-zinc-400 mb-6">{message}</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={() => { onConfirm(); onClose(); }}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-rose-600 hover:bg-rose-500 text-zinc-900 dark:text-white transition-colors"
           >
             Confirm
           </button>

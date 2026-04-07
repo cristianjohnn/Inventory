@@ -8,7 +8,7 @@ export function useTheme() {
   });
 
   useEffect(() => {
-    document.body.classList.toggle('light', !isDark);
+    document.documentElement.classList.toggle('dark', isDark);
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 

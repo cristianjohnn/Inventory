@@ -75,7 +75,7 @@ export default function AssetDetailPage() {
             <Skeleton width="200px" height="20px" />
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Skeleton width="100%" height="250px" className="glass-card" />
             <Skeleton width="100%" height="300px" className="glass-card" />
@@ -97,23 +97,23 @@ export default function AssetDetailPage() {
       {/* Navigation */}
       <button 
         onClick={() => navigate('/assets')}
-        className="flex items-center gap-2 text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium"
+        className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium"
       >
         <ArrowLeft size={16} /> Back to Assets
       </button>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-gradient-to-r from-zinc-900/50 to-transparent p-6 rounded-2xl border border-zinc-800/50 backdrop-blur-sm">
+      <div className="flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-gradient-to-r from-white/80 dark:from-zinc-900/50 to-transparent p-6 rounded-2xl border-zinc-200/50 dark:border-zinc-800/50 backdrop-blur-sm">
         <div className="flex gap-6 items-center">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-800/80 border border-zinc-700/50 flex items-center justify-center text-3xl shadow-xl">
+          <div className="w-16 h-16 rounded-2xl bg-zinc-100/80 dark:bg-zinc-800/80 border-zinc-300/50 dark:border-zinc-700/50 flex items-center justify-center text-3xl shadow-xl">
             {category?.icon || '📦'}
           </div>
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold text-zinc-100">{data.name}</h1>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{data.name}</h1>
               <Badge status={data.status} />
             </div>
-            <p className="text-zinc-400 flex items-center gap-2">
+            <p className="text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
               <Tag size={14} /> {data.assetTag}
               <span className="text-zinc-600">•</span>
               <span className="font-mono text-xs">{data.serialNumber}</span>
@@ -125,20 +125,20 @@ export default function AssetDetailPage() {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsEditModalOpen(true)}
-            className="p-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+            className="p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors"
           >
             <Edit size={18} />
           </button>
           <button 
             onClick={() => setIsDeleteDialogOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-medium transition-colors border border-rose-500/20"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-medium transition-colors border-rose-500/20"
           >
             <Trash2 size={18} /> Delete
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Main Content (Left Col) */}
         <div className="col-span-1 lg:col-span-2 space-y-6">
@@ -147,19 +147,19 @@ export default function AssetDetailPage() {
           <div className="glass-card p-6 relative overflow-hidden">
             <div className={`absolute right-0 top-0 w-64 h-64 bg-gradient-to-br ${isHealthy ? 'from-emerald-500/10 to-teal-500/5' : 'from-rose-500/10 to-orange-500/5'} blur-3xl -z-10`} />
             
-            <h3 className="text-lg font-semibold text-zinc-200 mb-6 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-6 flex items-center gap-2">
               <Activity size={18} className={isHealthy ? 'text-emerald-500' : 'text-rose-500'} /> 
               Depreciation Status
             </h3>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Current Value</p>
-                <p className="text-2xl font-bold text-zinc-100">{formatCurrency(data.depreciation.currentValue)}</p>
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{formatCurrency(data.depreciation.currentValue)}</p>
               </div>
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Purchase Price</p>
-                <p className="text-xl font-semibold text-zinc-300 line-through decoration-zinc-600">{formatCurrency(data.purchasePrice)}</p>
+                <p className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 line-through decoration-zinc-600">{formatCurrency(data.purchasePrice)}</p>
               </div>
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Monthly Cost</p>
@@ -167,13 +167,13 @@ export default function AssetDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-zinc-500 mb-1">Total Depreciated</p>
-                <p className="text-xl font-semibold text-zinc-300">{formatCurrency(data.depreciation.totalDepreciated)}</p>
+                <p className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">{formatCurrency(data.depreciation.totalDepreciated)}</p>
               </div>
             </div>
 
             <div className="space-y-2 mb-6">
               <div className="flex justify-between items-end">
-                <span className="text-sm font-medium text-zinc-300">Value Remaining</span>
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Value Remaining</span>
                 <span className={`text-lg font-bold ${isHealthy ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {formatPercent(data.depreciation.percentRemaining)}
                 </span>
@@ -185,57 +185,57 @@ export default function AssetDetailPage() {
               />
             </div>
 
-            <div className="flex flex-wrap gap-4 pt-4 border-t border-zinc-800/50">
-              <div className="px-3 py-1.5 rounded-md bg-zinc-900/50 text-xs text-zinc-400 border border-zinc-800">
-                <span className="font-semibold text-zinc-300">Method:</span> {method?.label || data.depreciationMethod}
+            <div className="flex-wrap gap-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
+              <div className="px-3 py-1.5 rounded-md bg-white/50 dark:bg-zinc-900/50 text-xs text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Method:</span> {method?.label || data.depreciationMethod}
               </div>
-              <div className="px-3 py-1.5 rounded-md bg-zinc-900/50 text-xs text-zinc-400 border border-zinc-800">
-                <span className="font-semibold text-zinc-300">Months Left:</span> {data.depreciation.monthsRemaining}
+              <div className="px-3 py-1.5 rounded-md bg-white/50 dark:bg-zinc-900/50 text-xs text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Months Left:</span> {data.depreciation.monthsRemaining}
               </div>
-              <div className="px-3 py-1.5 rounded-md bg-zinc-900/50 text-xs text-zinc-400 border border-zinc-800">
-                <span className="font-semibold text-zinc-300">Fully Depreciates:</span> {formatDate(data.depreciation.fullyDepreciatedDate)}
+              <div className="px-3 py-1.5 rounded-md bg-white/50 dark:bg-zinc-900/50 text-xs text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
+                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Fully Depreciates:</span> {formatDate(data.depreciation.fullyDepreciatedDate)}
               </div>
             </div>
           </div>
 
           {/* Details & Specs */}
           <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-zinc-200 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
               <Monitor size={18} className="text-blue-500" /> Identity & Specifications
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Location</p>
-                <p className="text-zinc-200 font-medium">{data.location || '—'}</p>
+                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{data.location || '—'}</p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Purchase Date</p>
-                <p className="text-zinc-200 font-medium">{formatDate(data.purchaseDate)}</p>
+                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{formatDate(data.purchaseDate)}</p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Warranty Expiry</p>
-                <p className="text-zinc-200 font-medium">{formatDate(data.warrantyExpiry)}</p>
+                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{formatDate(data.warrantyExpiry)}</p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Salvage Value</p>
-                <p className="text-zinc-200 font-medium">{formatCurrency(data.salvageValue)}</p>
+                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{formatCurrency(data.salvageValue)}</p>
               </div>
               {data.depreciationMethod === 'UNITS_OF_PRODUCTION' && (
                 <>
                   <div>
                     <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Units Lifecycle</p>
-                    <p className="text-zinc-200 font-medium">{data.totalUnits?.toLocaleString()}</p>
+                    <p className="text-zinc-800 dark:text-zinc-200 font-medium">{data.totalUnits?.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Units Used</p>
-                    <p className="text-zinc-200 font-medium">{data.unitsUsed?.toLocaleString() || 0}</p>
+                    <p className="text-zinc-800 dark:text-zinc-200 font-medium">{data.unitsUsed?.toLocaleString() || 0}</p>
                   </div>
                 </>
               )}
               {data.notes && (
-                <div className="col-span-1 md:col-span-2 pt-4 border-t border-zinc-800/50">
+                <div className="col-span-1 md:col-span-2 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
                   <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Notes</p>
-                  <p className="text-zinc-300 text-sm whitespace-pre-wrap">{data.notes}</p>
+                  <p className="text-zinc-700 dark:text-zinc-300 text-sm whitespace-pre-wrap">{data.notes}</p>
                 </div>
               )}
             </div>
@@ -247,38 +247,38 @@ export default function AssetDetailPage() {
           
           {/* Assignment Card */}
           <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-zinc-200 mb-4">Assignment</h3>
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4">Assignment</h3>
             {data.assignedEmployee ? (
-              <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 text-center">
+              <div className="p-4 rounded-xl bg-blue-500/5 border-blue-500/10 text-center">
                 <div className="w-16 h-16 mx-auto rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold mb-3 shadow-inner">
                   {data.assignedEmployee.charAt(0)}
                 </div>
-                <h4 className="font-semibold text-zinc-100 mb-1">{data.assignedEmployee}</h4>
+                <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{data.assignedEmployee}</h4>
                 <p className="text-xs text-zinc-500 mb-4">Currently using this asset</p>
                 <div className="flex gap-2">
                   <button 
                     onClick={handleUnassign}
-                    className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors flex justify-center items-center gap-1"
+                    className="flex-1 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors flex justify-center items-center gap-1"
                   >
                     <UserMinus size={14} /> Unassign
                   </button>
                   <button 
                     onClick={() => setIsAssignModalOpen(true)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/20 text-sm font-medium transition-colors flex justify-center items-center gap-1"
+                    className="flex-1 px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border-emerald-500/20 text-sm font-medium transition-colors flex justify-center items-center gap-1"
                   >
                     <UserPlus size={14} /> Reassign
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800 text-center border-dashed">
-                <div className="w-12 h-12 mx-auto rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 mb-3">
+              <div className="p-6 rounded-xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-center border-dashed">
+                <div className="w-12 h-12 mx-auto rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 mb-3">
                   <ShieldAlert size={20} />
                 </div>
-                <p className="text-sm font-medium text-zinc-300 mb-4">Asset is currently unassigned and in storage.</p>
+                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-4">Asset is currently unassigned and in storage.</p>
                 <button 
                   onClick={() => setIsAssignModalOpen(true)}
-                  className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-emerald-500/20 flex justify-center items-center gap-2"
+                  className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-zinc-900 dark:text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-emerald-500/20 flex justify-center items-center gap-2"
                 >
                   <UserPlus size={16} /> Assign to Employee
                 </button>
@@ -287,22 +287,22 @@ export default function AssetDetailPage() {
           </div>
 
           {/* Audit History */}
-          <div className="glass-card p-6 h-[400px] flex flex-col">
-            <h3 className="text-lg font-semibold text-zinc-200 mb-4 flex items-center gap-2">
-              <Clock size={16} className="text-zinc-400" /> Audit History
+          <div className="glass-card p-6 h-[400px] flex-col">
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
+              <Clock size={16} className="text-zinc-500 dark:text-zinc-400" /> Audit History
             </h3>
             <div className="flex-1 overflow-y-auto pr-2 relative filter-container">
-              <div className="absolute left-[11px] top-4 bottom-4 w-px bg-zinc-800" />
+              <div className="absolute left-[11px] top-4 bottom-4 w-px bg-zinc-100 dark:bg-zinc-800" />
               <div className="space-y-6">
                 {history.map((log, i) => (
-                  <div key={log.id} className="relative pl-8">
-                    <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center z-10">
+                  <div key={log.id} className="relative" style={{ paddingLeft: '48px' }}>
+                    <div className="absolute top-1 w-6 h-6 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center z-10" style={{ left: '0px' }}>
                       <div className="w-2 h-2 rounded-full bg-zinc-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-200">{log.action}</p>
+                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{log.action}</p>
                       <p className="text-xs text-zinc-500 mt-0.5 mb-2">{timeAgo(log.timestamp)} by {log.performedBy}</p>
-                      <div className="p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 text-sm text-zinc-400">
+                      <div className="p-3 rounded-lg bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-sm text-zinc-500 dark:text-zinc-400">
                         {log.details}
                       </div>
                     </div>

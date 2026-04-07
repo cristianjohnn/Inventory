@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { assetsApi } from '../../api/client.js';
-import { CATEGORY_OPTIONS, DEPRECIATION_METHODS, STATUS_OPTIONS } from '../../utils/constants.js';
+import { CATEGORY_OPTIONS, DEPRECIATION_METHODS, STATUS_OPTIONS, DEPARTMENT_OPTIONS } from '../../utils/constants.js';
 import Modal from '../../components/ui/Modal.jsx';
 
 export default function AssetFormModal({ isOpen, onClose, asset = null, onSuccess }) {
@@ -19,6 +19,7 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
     totalUnits: '',
     unitsUsed: '',
     status: 'AVAILABLE',
+    department: '',
     location: '',
     warrantyExpiry: '',
     notes: '',
@@ -40,6 +41,7 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
         totalUnits: asset.totalUnits || '',
         unitsUsed: asset.unitsUsed || '',
         status: asset.status,
+        department: asset.department || '',
         location: asset.location || '',
         warrantyExpiry: asset.warrantyExpiry ? asset.warrantyExpiry.split('T')[0] : '',
         notes: asset.notes || '',
@@ -58,6 +60,7 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
         totalUnits: '',
         unitsUsed: '',
         status: 'AVAILABLE',
+        department: '',
         location: '',
         warrantyExpiry: '',
         notes: '',
@@ -111,48 +114,49 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? 'Edit Asset' : 'Add New Asset'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid-cols-1 md:grid-cols-2 gap-4">
           
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Asset Name *</label>
-            <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" placeholder="e.g. MacBook Pro 16" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Asset Name *</label>
+            <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" placeholder="e.g. MacBook Pro 16" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Category *</label>
-            <select name="category" value={formData.category} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Category *</label>
+            <input type="text" list="categories" placeholder="Select or type custom category..." name="category" value={formData.category} onChange={handleChange} required className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
+            <datalist id="categories">
               {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
+            </datalist>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Serial Number *</label>
-            <input required type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Serial Number *</label>
+            <input required type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Purchase Date *</label>
-            <input required type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200 outline-none" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Purchase Date *</label>
+            <input required type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200 outline-none" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Purchase Price ($) *</label>
-            <input required type="number" min="0" step="0.01" name="purchasePrice" value={formData.purchasePrice} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Purchase Price (₱) *</label>
+            <input type="number" step="0.01" name="purchasePrice" value={formData.purchasePrice} onChange={handleChange} required className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Useful Life (Years) *</label>
-            <input required type="number" min="1" step="1" name="usefulLifeYears" value={formData.usefulLifeYears} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Useful Life (Years) *</label>
+            <input required type="number" min="1" step="1" name="usefulLifeYears" value={formData.usefulLifeYears} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Salvage Value ($) *</label>
-            <input required type="number" min="0" step="0.01" name="salvageValue" value={formData.salvageValue} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Salvage Value (₱) *</label>
+            <input type="number" step="0.01" name="salvageValue" value={formData.salvageValue} onChange={handleChange} required className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Depreciation Method *</label>
-            <select name="depreciationMethod" value={formData.depreciationMethod} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Depreciation Method *</label>
+            <select name="depreciationMethod" value={formData.depreciationMethod} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200">
               {DEPRECIATION_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
           </div>
@@ -160,44 +164,52 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
           {formData.depreciationMethod === 'UNITS_OF_PRODUCTION' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-1">Total Units Lifecycle *</label>
-                <input required type="number" min="1" name="totalUnits" value={formData.totalUnits} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Total Units Lifecycle *</label>
+                <input required type="number" min="1" name="totalUnits" value={formData.totalUnits} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-1">Units Used</label>
-                <input type="number" min="0" name="unitsUsed" value={formData.unitsUsed} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Units Used</label>
+                <input type="number" min="0" name="unitsUsed" value={formData.unitsUsed} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
               </div>
             </>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Status</label>
-            <select name="status" value={formData.status} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
+            <select name="status" value={formData.status} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200">
               {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Warranty Expiry</label>
-            <input type="date" name="warrantyExpiry" value={formData.warrantyExpiry} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Department</label>
+            <select name="department" value={formData.department} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200">
+              <option value="">None / Unassigned</option>
+              {DEPARTMENT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Warranty Expiry</label>
+            <input type="date" name="warrantyExpiry" value={formData.warrantyExpiry} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Location</label>
-            <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Location</label>
+            <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Notes</label>
-            <textarea name="notes" rows="3" value={formData.notes} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200 resize-none" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Notes</label>
+            <textarea name="notes" rows="3" value={formData.notes} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200 resize-none" />
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800/50">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">
+        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors">
             Cancel
           </button>
-          <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20">
+          <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-zinc-900 dark:text-white transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20">
             {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Asset'}
           </button>
         </div>

@@ -6,10 +6,7 @@ import { z } from 'zod';
 
 const baseAssetSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
-  category: z.enum([
-    'LAPTOP', 'MONITOR', 'SERVER', 'PHONE',
-    'PRINTER', 'NETWORKING', 'PERIPHERAL',
-  ]),
+  category: z.string().min(1, 'Category is required').max(100),
   serialNumber: z.string().min(1, 'Serial number is required').max(100),
   purchaseDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Invalid date format',
@@ -23,6 +20,11 @@ const baseAssetSchema = z.object({
   totalUnits: z.number().int().positive().optional().nullable(),
   unitsUsed: z.number().int().min(0).optional().nullable(),
   assignedEmployee: z.string().max(200).optional().nullable(),
+  department: z.enum([
+    'ADMIN_DEPARTMENT', 'CORPORATE_DEPARTMENT', 'CUSTOMER_CARE',
+    'I_TECH', 'I_WALLET', 'IT_DEPARTMENT', 'IT_SUPPORT',
+    'JOINT_VENTURES', 'MARKETING', 'REAL_ESTATE', 'SECRETARY', 'EXECUTIVE'
+  ]).optional().nullable(),
   status: z
     .enum(['IN_USE', 'AVAILABLE', 'UNDER_REPAIR', 'RETIRED'])
     .optional()

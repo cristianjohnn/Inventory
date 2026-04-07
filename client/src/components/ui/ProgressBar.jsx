@@ -3,7 +3,7 @@ export default function ProgressBar({ value, max = 100, color = '#10b981', heigh
 
   return (
     <div
-      className="w-full rounded-full overflow-hidden bg-zinc-800"
+      className="w-full rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800"
       style={{ height }}
     >
       <div

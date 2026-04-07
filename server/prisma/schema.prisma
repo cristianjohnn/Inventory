@@ -14,15 +14,7 @@ datasource db {
 // Enums
 // =====================
 
-enum Category {
-  LAPTOP
-  MONITOR
-  SERVER
-  PHONE
-  PRINTER
-  NETWORKING
-  PERIPHERAL
-}
+// Removed Category enum to allow custom categories
 
 enum AssetStatus {
   IN_USE
@@ -37,6 +29,21 @@ enum DepreciationMethod {
   UNITS_OF_PRODUCTION
 }
 
+enum Department {
+  ADMIN_DEPARTMENT
+  CORPORATE_DEPARTMENT
+  CUSTOMER_CARE
+  I_TECH
+  I_WALLET
+  IT_DEPARTMENT
+  IT_SUPPORT
+  JOINT_VENTURES
+  MARKETING
+  REAL_ESTATE
+  SECRETARY
+  EXECUTIVE
+}
+
 // =====================
 // Models
 // =====================
@@ -45,7 +52,7 @@ model Asset {
   id                 Int                @id @default(autoincrement())
   name               String
   assetTag           String             @unique
-  category           Category
+  category           String
   serialNumber       String             @unique
   purchaseDate       DateTime
   purchasePrice      Float
@@ -55,6 +62,7 @@ model Asset {
   totalUnits         Int?
   unitsUsed          Int?
   assignedEmployee   String?
+  department         Department?
   status             AssetStatus        @default(AVAILABLE)
   location           String?
   warrantyExpiry     DateTime?
@@ -67,6 +75,7 @@ model Asset {
   @@index([status])
   @@index([category])
   @@index([assignedEmployee])
+  @@index([department])
 }
 
 model AuditLog {

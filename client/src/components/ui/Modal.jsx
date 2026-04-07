@@ -28,20 +28,22 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm animate-fade-in"
       onClick={(e) => e.target === overlayRef.current && onClose()}
     >
-      <div className={`w-full ${sizeClass} glass-card p-6 shadow-2xl animate-fade-in`}>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-zinc-100">{title}</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-zinc-700/50 text-zinc-400 hover:text-zinc-200 transition-colors"
-          >
-            <X size={18} />
-          </button>
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className={`w-full ${sizeClass} glass-card p-6 shadow-2xl animate-fade-in`} onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{title}</h2>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-zinc-700/50 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          {children}
         </div>
-        {children}
       </div>
     </div>
   );
