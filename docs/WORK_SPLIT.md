@@ -2,6 +2,156 @@
 
 How to divide the codebase among developers so everyone can work in parallel **without merge conflicts**.
 
+---
+
+## New Developer? Start Here
+
+If you just joined the team, follow these steps **in order**. You'll be coding in under 10 minutes.
+
+### Step 1: Clone the repo
+
+```bash
+git clone https://github.com/cristianjohnn/Inventory.git
+cd Inventory
+```
+
+> After cloning, you'll land on the `main` branch. **Do NOT work on `main` directly.** It's the production branch.
+
+### Step 2: Switch to `develop`
+
+```bash
+git checkout develop
+git pull origin develop
+```
+
+> `develop` is the integration branch — all your work starts from here.
+
+### Step 3: Install dependencies
+
+```bash
+npm run install:all
+```
+
+This installs root, server, and client dependencies in one command.
+
+### Step 4: Set up environment variables
+
+```bash
+cp .env.example .env
+```
+
+Fill in the values in `.env`. For local development, use these defaults:
+
+```env
+DATABASE_URL=postgresql://inventory_user:inventory_pass@localhost:5432/it_inventory
+POSTGRES_USER=inventory_user
+POSTGRES_PASSWORD=inventory_pass
+POSTGRES_DB=it_inventory
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+```
+
+### Step 5: Start the database + run migrations + seed
+
+```bash
+npm run docker:dev        # Starts PostgreSQL in Docker
+npm run db:migrate        # Creates tables
+npm run db:seed           # Adds sample data
+```
+
+### Step 6: Start the dev servers
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) — you should see the dashboard. ✅
+
+---
+
+### Step 7: Get your assignment
+
+Ask the tech lead which **Developer role** you've been assigned (A, B, C, D, or E — see [Developer Assignments](#developer-assignments) below). This tells you which files are yours to work on.
+
+### Step 8: Create your first feature branch
+
+```bash
+# Make sure you're on the latest develop
+git checkout develop
+git pull origin develop
+
+# Create your branch (use the correct prefix)
+git checkout -b feature/your-feature-name
+```
+
+> **Branch naming rules:**
+> - New feature → `feature/short-description`
+> - Bug fix → `fix/short-description`
+> - Docs only → `docs/short-description`
+
+### Step 9: Do your work, then push
+
+```bash
+# After making changes, commit with the right format
+git add .
+git commit -m "feat: describe what you did"
+
+# Push YOUR branch (never push to main, staging, or develop directly)
+git push origin feature/your-feature-name
+```
+
+### Step 10: Open a Pull Request on GitHub
+
+1. Go to [github.com/cristianjohnn/Inventory](https://github.com/cristianjohnn/Inventory)
+2. You'll see a banner: "feature/your-feature-name had recent pushes" → Click **"Compare & pull request"**
+3. **Set the target branch to `develop`** (not main!)
+4. Fill in the PR template
+5. Request a review from at least 1 teammate
+6. Wait for approval, then **squash and merge**
+7. Delete your branch after merging
+
+### Branch Diagram — Where does my code go?
+
+```
+YOU ARE HERE
+    │
+    ▼
+feature/your-feature  ──→  develop  ──→  staging  ──→  main
+  (your work)           (integration)   (testing)    (production)
+                              ▲
+                              │
+                     ALL PRs target here
+```
+
+> **The golden rule:** You push to `feature/*`, `fix/*`, or `docs/*` branches only.
+> You **never** push directly to `develop`, `staging`, or `main`.
+
+### Useful Commands Cheatsheet
+
+| Command                | What it does                              |
+|------------------------|-------------------------------------------|
+| `npm run dev`          | Starts server + client with hot reload    |
+| `npm run docker:dev`   | Starts PostgreSQL in Docker               |
+| `npm run db:migrate`   | Runs Prisma migrations                    |
+| `npm run db:seed`      | Seeds database with sample data           |
+| `npm run db:studio`    | Opens Prisma Studio (visual DB browser)   |
+| `npm run lint`         | Runs ESLint to check code quality         |
+| `npm run format`       | Formats code with Prettier                |
+| `npm run build`        | Builds the React app for production       |
+
+### Further Reading
+
+| Document | What's in it |
+|---|---|
+| [README.md](../README.md) | Project overview and detailed setup |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Commit message format, PR rules, code style |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Data models, API routes, depreciation formulas |
+| [BRANCH_STRATEGY.md](BRANCH_STRATEGY.md) | Full branching rules and hotfix procedure |
+| [COLLABORATORS.md](COLLABORATORS.md) | How to add team members on GitHub |
+
+---
+
 ## Quick Rules
 
 1. **Stay in your assigned folders.** Don't edit files outside your domain.
