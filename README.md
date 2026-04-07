@@ -136,6 +136,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming rules, commit message 
 
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Folder structure, data models, API routes, depreciation formulas
 - [BRANCH_STRATEGY.md](docs/BRANCH_STRATEGY.md) — Branch flow diagram, rules, and hotfix procedure
+- [WORK_SPLIT.md](docs/WORK_SPLIT.md) — How to divide work among developers (who owns which files)
 - [COLLABORATORS.md](docs/COLLABORATORS.md) — How to add team members and set permissions
 
 ## License
