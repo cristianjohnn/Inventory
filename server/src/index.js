@@ -8,6 +8,8 @@ import assetRoutes from './routes/assets.js';
 import dashboardRoutes from './routes/dashboard.js';
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Nginx)
+
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
 

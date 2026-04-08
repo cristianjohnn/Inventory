@@ -1,13 +1,13 @@
-export default function Skeleton({ className = '', width, height }) {
+export default function Skeleton({ width = '100%', height = '20px', className = '' }) {
   return (
     <div
-      className={`rounded-lg bg-zinc-100 dark:bg-zinc-800 ${className}`}
+      className={`rounded-lg ${className}`}
       style={{
         width,
-        height: height || '1rem',
-        backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)',
+        height,
+        background: 'linear-gradient(90deg, var(--color-border) 25%, var(--color-bg-surface-hover) 50%, var(--color-border) 75%)',
         backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s infinite',
+        animation: 'shimmer 1.5s ease-in-out infinite',
       }}
     />
   );
@@ -15,22 +15,23 @@ export default function Skeleton({ className = '', width, height }) {
 
 export function SkeletonCard() {
   return (
-    <div className="glass-card p-5">
-      <Skeleton width="40%" height="0.75rem" className="mb-3" />
-      <Skeleton width="60%" height="1.5rem" className="mb-2" />
-      <Skeleton width="30%" height="0.75rem" />
+    <div className="card p-5 space-y-3">
+      <Skeleton width="60%" height="14px" />
+      <Skeleton width="80%" height="28px" />
+      <Skeleton width="40%" height="12px" />
     </div>
   );
 }
 
 export function SkeletonRow() {
   return (
-    <div className="flex items-center gap-4 p-4 border-b border-zinc-200/50 dark:border-zinc-800/50">
-      <Skeleton width="2rem" height="2rem" className="rounded-full" />
-      <Skeleton width="25%" height="0.875rem" />
-      <Skeleton width="15%" height="0.875rem" />
-      <Skeleton width="10%" height="1.5rem" className="rounded-full" />
-      <Skeleton width="15%" height="0.875rem" className="ml-auto" />
+    <div className="flex items-center gap-4 py-2">
+      <Skeleton width="32px" height="32px" className="rounded-lg shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton width="70%" height="14px" />
+        <Skeleton width="40%" height="10px" />
+      </div>
+      <Skeleton width="60px" height="24px" className="rounded-md" />
     </div>
   );
 }

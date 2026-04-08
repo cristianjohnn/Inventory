@@ -1,25 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, UserPlus, UserMinus, ShieldAlert, Monitor, Activity, Tag, Clock } from 'lucide-react';
+import {
+  ArrowLeft, Edit, Trash2, UserPlus, UserMinus, ShieldAlert,
+  Monitor, Activity, Tag, Clock, MapPin, Calendar, Shield, FileText
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { assetsApi } from '../../api/client.js';
 import { formatCurrency, formatDate, timeAgo, formatPercent } from '../../utils/formatters.js';
-import { getStatusConfig, CATEGORY_OPTIONS, DEPRECIATION_METHODS } from '../../utils/constants.js';
+import { getCategoryConfig, DEPRECIATION_METHODS, DEPARTMENT_OPTIONS } from '../../utils/constants.js';
 import Badge from '../../components/ui/Badge.jsx';
 import ProgressBar from '../../components/ui/ProgressBar.jsx';
+import DepreciationGauge from '../../components/ui/DepreciationGauge.jsx';
 import Skeleton from '../../components/ui/Skeleton.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import AssignModal from './AssignModal.jsx';
 import AssetFormModal from './AssetFormModal.jsx';
 
+// Info row component for detail sections
+const InfoRow = ({ icon: Icon, label, value }) => (
+  <div className="flex items-start gap-3 py-3" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+    {Icon && (
+      <div className="p-1.5 rounded-md shrink-0 mt-0.5" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
+        <Icon size={14} />
+      </div>
+    )}
+    <div className="min-w-0 flex-1">
+      <p className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
+        {label}
+      </p>
+      <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        {value || '—'}
+      </p>
+    </div>
+  </div>
+);
+
 export default function AssetDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [data, setData] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -67,20 +90,20 @@ export default function AssetDetailPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton width="120px" height="24px" className="mb-6" />
+        <Skeleton width="120px" height="20px" />
         <div className="flex gap-6 items-start">
-          <Skeleton width="64px" height="64px" className="rounded-2xl" />
+          <Skeleton width="56px" height="56px" className="rounded-xl" />
           <div className="space-y-3">
-            <Skeleton width="300px" height="32px" />
-            <Skeleton width="200px" height="20px" />
+            <Skeleton width="300px" height="28px" />
+            <Skeleton width="200px" height="16px" />
           </div>
         </div>
-        <div className="grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Skeleton width="100%" height="250px" className="glass-card" />
-            <Skeleton width="100%" height="300px" className="glass-card" />
+            <Skeleton width="100%" height="280px" className="card" />
+            <Skeleton width="100%" height="280px" className="card" />
           </div>
-          <Skeleton width="100%" height="400px" className="glass-card" />
+          <Skeleton width="100%" height="400px" className="card" />
         </div>
       </div>
     );
@@ -88,232 +111,350 @@ export default function AssetDetailPage() {
 
   if (!data) return null;
 
-  const category = CATEGORY_OPTIONS.find(c => c.value === data.category);
+  const catConfig = getCategoryConfig(data.category);
+  const CatIcon = catConfig.icon;
   const method = DEPRECIATION_METHODS.find(m => m.value === data.depreciationMethod);
   const isHealthy = data.depreciation.percentRemaining > 20;
+  const dept = DEPARTMENT_OPTIONS.find(d => d.value === data.department);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Navigation */}
-      <button 
+      {/* Back Navigation */}
+      <button
         onClick={() => navigate('/assets')}
-        className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium"
+        className="btn btn-ghost text-xs"
       >
-        <ArrowLeft size={16} /> Back to Assets
+        <ArrowLeft size={15} /> Back to Assets
       </button>
 
-      {/* Header */}
-      <div className="flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-gradient-to-r from-white/80 dark:from-zinc-900/50 to-transparent p-6 rounded-2xl border-zinc-200/50 dark:border-zinc-800/50 backdrop-blur-sm">
-        <div className="flex gap-6 items-center">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-100/80 dark:bg-zinc-800/80 border-zinc-300/50 dark:border-zinc-700/50 flex items-center justify-center text-3xl shadow-xl">
-            {category?.icon || '📦'}
+      {/* Hero Header */}
+      <div
+        className="card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+      >
+        <div className="flex gap-4 items-center">
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center"
+            style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
+          >
+            <CatIcon size={28} />
           </div>
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{data.name}</h1>
+              <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                {data.name}
+              </h1>
               <Badge status={data.status} />
             </div>
-            <p className="text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
-              <Tag size={14} /> {data.assetTag}
-              <span className="text-zinc-600">•</span>
+            <p className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+              <Tag size={13} />
+              <span className="font-mono text-xs">{data.assetTag}</span>
+              <span>•</span>
               <span className="font-mono text-xs">{data.serialNumber}</span>
-              <span className="text-zinc-600">•</span>
-              {category?.label}
+              <span>•</span>
+              <span>{catConfig.label}</span>
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsEditModalOpen(true)}
-            className="p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors"
-          >
-            <Edit size={18} />
+
+        <div className="flex items-center gap-2">
+          <button onClick={() => setIsEditModalOpen(true)} className="btn btn-secondary">
+            <Edit size={15} /> Edit
           </button>
-          <button 
-            onClick={() => setIsDeleteDialogOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-medium transition-colors border-rose-500/20"
-          >
-            <Trash2 size={18} /> Delete
+          <button onClick={() => setIsDeleteDialogOpen(true)} className="btn btn-danger">
+            <Trash2 size={15} /> Delete
           </button>
         </div>
       </div>
 
-      <div className="grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Main Content (Left Col) */}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Left Column */}
         <div className="col-span-1 lg:col-span-2 space-y-6">
-          
-          {/* Depreciation Overview */}
-          <div className="glass-card p-6 relative overflow-hidden">
-            <div className={`absolute right-0 top-0 w-64 h-64 bg-gradient-to-br ${isHealthy ? 'from-emerald-500/10 to-teal-500/5' : 'from-rose-500/10 to-orange-500/5'} blur-3xl -z-10`} />
-            
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-6 flex items-center gap-2">
-              <Activity size={18} className={isHealthy ? 'text-emerald-500' : 'text-rose-500'} /> 
-              Depreciation Status
-            </h3>
-            
-            <div className="grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">Current Value</p>
-                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{formatCurrency(data.depreciation.currentValue)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">Purchase Price</p>
-                <p className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 line-through decoration-zinc-600">{formatCurrency(data.purchasePrice)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">Monthly Cost</p>
-                <p className="text-xl font-semibold text-rose-400">-{formatCurrency(data.depreciation.monthlyDepreciation)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-zinc-500 mb-1">Total Depreciated</p>
-                <p className="text-xl font-semibold text-zinc-700 dark:text-zinc-300">{formatCurrency(data.depreciation.totalDepreciated)}</p>
+
+          {/* Depreciation Card */}
+          <div className="card overflow-hidden">
+            <div className="card-header">
+              <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+                <Activity size={16} style={{ color: isHealthy ? '#22c55e' : '#ef4444' }} />
+                Depreciation Status
+              </h3>
+              <div
+                className="text-[11px] font-semibold px-2 py-1 rounded-md"
+                style={{
+                  background: isHealthy ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  color: isHealthy ? '#22c55e' : '#ef4444',
+                }}
+              >
+                {isHealthy ? 'Healthy' : 'Critical'}
               </div>
             </div>
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {/* Gauge */}
+                <div className="shrink-0">
+                  <DepreciationGauge
+                    value={data.depreciation.percentRemaining}
+                    size={160}
+                    strokeWidth={12}
+                    label="Value Remaining"
+                  />
+                </div>
 
-            <div className="space-y-2 mb-6">
-              <div className="flex justify-between items-end">
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Value Remaining</span>
-                <span className={`text-lg font-bold ${isHealthy ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {formatPercent(data.depreciation.percentRemaining)}
+                {/* Key Metrics */}
+                <div className="flex-1 grid grid-cols-2 gap-4 w-full">
+                  <div className="p-4 rounded-lg" style={{ background: 'var(--color-bg-surface-hover)' }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-tertiary)' }}>
+                      Current Value
+                    </p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                      {formatCurrency(data.depreciation.currentValue)}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg" style={{ background: 'var(--color-bg-surface-hover)' }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-tertiary)' }}>
+                      Purchase Price
+                    </p>
+                    <p className="text-xl font-bold line-through decoration-1" style={{ color: 'var(--color-text-secondary)' }}>
+                      {formatCurrency(data.purchasePrice)}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg" style={{ background: 'var(--color-bg-surface-hover)' }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-tertiary)' }}>
+                      Monthly Cost
+                    </p>
+                    <p className="text-xl font-bold" style={{ color: '#ef4444' }}>
+                      -{formatCurrency(data.depreciation.monthlyDepreciation)}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg" style={{ background: 'var(--color-bg-surface-hover)' }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-tertiary)' }}>
+                      Total Depreciated
+                    </p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-text-secondary)' }}>
+                      {formatCurrency(data.depreciation.totalDepreciated)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Full-width progress bar */}
+              <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+                    Value Remaining
+                  </span>
+                  <span className="text-sm font-bold" style={{ color: isHealthy ? '#22c55e' : '#ef4444' }}>
+                    {formatPercent(data.depreciation.percentRemaining)}
+                  </span>
+                </div>
+                <ProgressBar value={data.depreciation.percentRemaining} height={10} />
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 mt-5">
+                <span
+                  className="text-[11px] px-2.5 py-1 rounded-md font-medium"
+                  style={{ background: 'var(--color-bg-surface-hover)', color: 'var(--color-text-secondary)' }}
+                >
+                  Method: <span style={{ color: 'var(--accent)' }}>{method?.label || data.depreciationMethod}</span>
+                </span>
+                <span
+                  className="text-[11px] px-2.5 py-1 rounded-md font-medium"
+                  style={{ background: 'var(--color-bg-surface-hover)', color: 'var(--color-text-secondary)' }}
+                >
+                  Months Left: <span style={{ color: 'var(--color-text-primary)' }}>{data.depreciation.monthsRemaining}</span>
+                </span>
+                <span
+                  className="text-[11px] px-2.5 py-1 rounded-md font-medium"
+                  style={{ background: 'var(--color-bg-surface-hover)', color: 'var(--color-text-secondary)' }}
+                >
+                  End of Life: <span style={{ color: 'var(--color-text-primary)' }}>{formatDate(data.depreciation.fullyDepreciatedDate)}</span>
                 </span>
               </div>
-              <ProgressBar 
-                value={data.depreciation.percentRemaining} 
-                height={12}
-                color={isHealthy ? '#10b981' : data.depreciation.percentRemaining > 10 ? '#f59e0b' : '#ef4444'} 
-              />
-            </div>
-
-            <div className="flex-wrap gap-4 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
-              <div className="px-3 py-1.5 rounded-md bg-white/50 dark:bg-zinc-900/50 text-xs text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
-                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Method:</span> {method?.label || data.depreciationMethod}
-              </div>
-              <div className="px-3 py-1.5 rounded-md bg-white/50 dark:bg-zinc-900/50 text-xs text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
-                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Months Left:</span> {data.depreciation.monthsRemaining}
-              </div>
-              <div className="px-3 py-1.5 rounded-md bg-white/50 dark:bg-zinc-900/50 text-xs text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
-                <span className="font-semibold text-zinc-700 dark:text-zinc-300">Fully Depreciates:</span> {formatDate(data.depreciation.fullyDepreciatedDate)}
-              </div>
             </div>
           </div>
 
-          {/* Details & Specs */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-              <Monitor size={18} className="text-blue-500" /> Identity & Specifications
-            </h3>
-            <div className="grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Location</p>
-                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{data.location || '—'}</p>
+          {/* Identity & Specifications */}
+          <div className="card overflow-hidden">
+            <div className="card-header">
+              <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+                <Monitor size={16} style={{ color: '#3b82f6' }} />
+                Identity & Specifications
+              </h3>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                <InfoRow icon={MapPin} label="Location" value={data.location} />
+                <InfoRow icon={Calendar} label="Purchase Date" value={formatDate(data.purchaseDate)} />
+                <InfoRow icon={Shield} label="Warranty Expiry" value={formatDate(data.warrantyExpiry)} />
+                <InfoRow
+                  icon={Tag}
+                  label="Salvage Value"
+                  value={formatCurrency(data.salvageValue)}
+                />
+                {data.department && (
+                  <InfoRow
+                    icon={Monitor}
+                    label="Department"
+                    value={dept?.label || data.department}
+                  />
+                )}
+                {data.depreciationMethod === 'UNITS_OF_PRODUCTION' && (
+                  <>
+                    <InfoRow icon={Activity} label="Total Units Lifecycle" value={data.totalUnits?.toLocaleString()} />
+                    <InfoRow icon={Activity} label="Units Used" value={(data.unitsUsed || 0).toLocaleString()} />
+                  </>
+                )}
               </div>
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Purchase Date</p>
-                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{formatDate(data.purchaseDate)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Warranty Expiry</p>
-                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{formatDate(data.warrantyExpiry)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Salvage Value</p>
-                <p className="text-zinc-800 dark:text-zinc-200 font-medium">{formatCurrency(data.salvageValue)}</p>
-              </div>
-              {data.depreciationMethod === 'UNITS_OF_PRODUCTION' && (
-                <>
-                  <div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Units Lifecycle</p>
-                    <p className="text-zinc-800 dark:text-zinc-200 font-medium">{data.totalUnits?.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Units Used</p>
-                    <p className="text-zinc-800 dark:text-zinc-200 font-medium">{data.unitsUsed?.toLocaleString() || 0}</p>
-                  </div>
-                </>
-              )}
               {data.notes && (
-                <div className="col-span-1 md:col-span-2 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Notes</p>
-                  <p className="text-zinc-700 dark:text-zinc-300 text-sm whitespace-pre-wrap">{data.notes}</p>
+                <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
+                    <FileText size={12} className="inline mr-1" style={{ color: 'var(--accent)' }} />
+                    Notes
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--color-text-secondary)' }}>
+                    {data.notes}
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Sidebar (Right Col) */}
+        {/* Right Column */}
         <div className="col-span-1 space-y-6">
-          
+
           {/* Assignment Card */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4">Assignment</h3>
-            {data.assignedEmployee ? (
-              <div className="p-4 rounded-xl bg-blue-500/5 border-blue-500/10 text-center">
-                <div className="w-16 h-16 mx-auto rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold mb-3 shadow-inner">
-                  {data.assignedEmployee.charAt(0)}
-                </div>
-                <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{data.assignedEmployee}</h4>
-                <p className="text-xs text-zinc-500 mb-4">Currently using this asset</p>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={handleUnassign}
-                    className="flex-1 px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors flex justify-center items-center gap-1"
+          <div className="card overflow-hidden">
+            <div className="card-header">
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                Assignment
+              </h3>
+            </div>
+            <div className="p-6">
+              {data.assignedEmployee ? (
+                <div className="text-center">
+                  <div
+                    className="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-xl font-bold mb-3"
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      color: '#3b82f6',
+                    }}
                   >
-                    <UserMinus size={14} /> Unassign
-                  </button>
-                  <button 
+                    {data.assignedEmployee.charAt(0)}
+                  </div>
+                  <h4 className="font-semibold text-sm mb-0.5" style={{ color: 'var(--color-text-primary)' }}>
+                    {data.assignedEmployee}
+                  </h4>
+                  <p className="text-[11px] mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+                    Currently using this asset
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={handleUnassign} className="btn btn-secondary flex-1 justify-center text-xs">
+                      <UserMinus size={14} /> Unassign
+                    </button>
+                    <button
+                      onClick={() => setIsAssignModalOpen(true)}
+                      className="btn btn-primary flex-1 justify-center text-xs"
+                    >
+                      <UserPlus size={14} /> Reassign
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <div
+                    className="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3"
+                    style={{ background: 'var(--color-bg-surface-hover)', color: 'var(--color-text-tertiary)' }}
+                  >
+                    <ShieldAlert size={22} />
+                  </div>
+                  <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>
+                    Unassigned
+                  </p>
+                  <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+                    This asset is currently in storage.
+                  </p>
+                  <button
                     onClick={() => setIsAssignModalOpen(true)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border-emerald-500/20 text-sm font-medium transition-colors flex justify-center items-center gap-1"
+                    className="btn btn-primary w-full justify-center"
                   >
-                    <UserPlus size={14} /> Reassign
+                    <UserPlus size={15} /> Assign to Employee
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="p-6 rounded-xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-center border-dashed">
-                <div className="w-12 h-12 mx-auto rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 mb-3">
-                  <ShieldAlert size={20} />
-                </div>
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-4">Asset is currently unassigned and in storage.</p>
-                <button 
-                  onClick={() => setIsAssignModalOpen(true)}
-                  className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-zinc-900 dark:text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-emerald-500/20 flex justify-center items-center gap-2"
-                >
-                  <UserPlus size={16} /> Assign to Employee
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* Audit History */}
-          <div className="glass-card p-6 h-[400px] flex-col">
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-              <Clock size={16} className="text-zinc-500 dark:text-zinc-400" /> Audit History
-            </h3>
-            <div className="flex-1 overflow-y-auto pr-2 relative filter-container">
-              <div className="absolute left-[11px] top-4 bottom-4 w-px bg-zinc-100 dark:bg-zinc-800" />
-              <div className="space-y-6">
-                {history.map((log, i) => (
-                  <div key={log.id} className="relative" style={{ paddingLeft: '48px' }}>
-                    <div className="absolute top-1 w-6 h-6 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center z-10" style={{ left: '0px' }}>
-                      <div className="w-2 h-2 rounded-full bg-zinc-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{log.action}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5 mb-2">{timeAgo(log.timestamp)} by {log.performedBy}</p>
-                      <div className="p-3 rounded-lg bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-sm text-zinc-500 dark:text-zinc-400">
-                        {log.details}
+          {/* Audit Timeline */}
+          <div className="card overflow-hidden flex flex-col" style={{ maxHeight: 450 }}>
+            <div className="card-header shrink-0">
+              <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+                <Clock size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                Audit History
+              </h3>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="relative">
+                {/* Timeline line */}
+                <div
+                  className="absolute left-[7px] top-2 bottom-2 w-px"
+                  style={{ background: 'var(--color-border)' }}
+                />
+                <div className="space-y-5">
+                  {history.map((log) => {
+                    const dotColor =
+                      log.action === 'CREATED' ? '#22c55e'
+                      : log.action === 'ASSIGNED' || log.action === 'REASSIGNED' ? '#3b82f6'
+                      : log.action === 'UPDATED' || log.action === 'STATUS_CHANGED' ? '#e86c30'
+                      : log.action === 'UNASSIGNED' ? '#f59e0b'
+                      : '#6b7280';
+
+                    return (
+                      <div key={log.id} className="relative pl-7">
+                        {/* Timeline dot */}
+                        <div
+                          className="absolute left-0 top-1 w-[14px] h-[14px] rounded-full border-2 flex items-center justify-center"
+                          style={{
+                            borderColor: dotColor,
+                            background: 'var(--card-bg)',
+                          }}
+                        >
+                          <div
+                            className="w-[6px] h-[6px] rounded-full"
+                            style={{ background: dotColor }}
+                          />
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                            {log.action}
+                          </p>
+                          <p className="text-[10px] mt-0.5 mb-1.5" style={{ color: 'var(--color-text-tertiary)' }}>
+                            {timeAgo(log.timestamp)} by {log.performedBy}
+                          </p>
+                          <div
+                            className="p-2.5 rounded-lg text-xs"
+                            style={{
+                              background: 'var(--color-bg-surface-hover)',
+                              color: 'var(--color-text-secondary)',
+                            }}
+                          >
+                            {log.details}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Modals */}
       <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
@@ -322,18 +463,18 @@ export default function AssetDetailPage() {
         message={`Are you sure you want to delete ${data.name}? This action cannot be undone and will erase all audit history for this asset.`}
       />
 
-      <AssignModal 
-        isOpen={isAssignModalOpen} 
-        onClose={() => setIsAssignModalOpen(false)} 
-        assetId={data.id} 
-        onSuccess={loadData} 
+      <AssignModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        assetId={data.id}
+        onSuccess={loadData}
       />
-      
-      <AssetFormModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
-        asset={data} 
-        onSuccess={loadData} 
+
+      <AssetFormModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        asset={data}
+        onSuccess={loadData}
       />
     </div>
   );

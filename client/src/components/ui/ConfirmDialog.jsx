@@ -1,39 +1,37 @@
 import { AlertTriangle } from 'lucide-react';
+import Modal from './Modal.jsx';
 
 export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }) {
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm glass-card p-6 shadow-2xl animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-full bg-rose-500/10">
-            <AlertTriangle size={20} className="text-rose-500" />
-          </div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{title}</h3>
-        </div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{message}</p>
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors"
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div
+            className="p-2 rounded-lg shrink-0"
+            style={{ background: 'rgba(239, 68, 68, 0.1)' }}
           >
+            <AlertTriangle size={20} style={{ color: '#ef4444' }} />
+          </div>
+          <p
+            className="text-sm leading-relaxed"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {message}
+          </p>
+        </div>
+
+        <div
+          className="flex justify-end gap-3 pt-4"
+          style={{ borderTop: '1px solid var(--color-border)' }}
+        >
+          <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
-          <button
-            onClick={() => { onConfirm(); onClose(); }}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-rose-600 hover:bg-rose-500 text-zinc-900 dark:text-white transition-colors"
-          >
-            Confirm
+          <button onClick={onConfirm} className="btn btn-danger">
+            Delete
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

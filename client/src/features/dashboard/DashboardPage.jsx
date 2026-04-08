@@ -1,36 +1,72 @@
 import { useState, useEffect } from 'react';
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip,
+  ResponsiveContainer, Legend
 } from 'recharts';
-import { Monitor, CreditCard, Activity, CheckCircle2, AlertTriangle, XCircle, LayoutDashboard } from 'lucide-react';
+import {
+  Monitor, TrendingDown, Activity, CheckCircle2, AlertTriangle,
+  LayoutDashboard, DollarSign, Package, ArrowDownRight
+} from 'lucide-react';
 import { dashboardApi } from '../../api/client.js';
 import { formatCurrency, formatPercent, timeAgo } from '../../utils/formatters.js';
-import { getStatusConfig } from '../../utils/constants.js';
+import { getStatusConfig, getCategoryConfig, DEPARTMENT_OPTIONS } from '../../utils/constants.js';
 import Skeleton, { SkeletonCard, SkeletonRow } from '../../components/ui/Skeleton.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
-import Badge from '../../components/ui/Badge.jsx';
 
-// Components
-const StatCard = ({ icon: Icon, title, value, subtitle, gradient }) => (
-  <div className="glass-card relative group">
-    <div className="absolute inset-0 overflow-hidden rounded-[20px] pointer-events-none">
-      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 bg-gradient-to-br ${gradient} group-hover:scale-125 transition-transform duration-500`} />
-    </div>
-    <div className="p-5 flex items-start justify-between gap-4 relative z-10">
+// KPI Stat Card
+const StatCard = ({ icon: Icon, title, value, subtitle, accentColor }) => (
+  <div className="card p-5 relative overflow-hidden group animate-count-up">
+    <div className="flex items-start justify-between gap-3">
       <div className="min-w-0 flex-1">
-        <p className="text-zinc-500 text-sm font-medium mb-1 truncate">{title}</p>
-        <h3 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 truncate">{value}</h3>
-        {subtitle && <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{subtitle}</p>}
+        <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--color-text-tertiary)' }}>
+          {title}
+        </p>
+        <h3 className="text-2xl font-bold truncate" style={{ color: 'var(--color-text-primary)' }}>
+          {value}
+        </h3>
+        {subtitle && (
+          <p className="text-xs mt-1.5 truncate" style={{ color: 'var(--color-text-tertiary)' }}>
+            {subtitle}
+          </p>
+        )}
       </div>
-      <div className="relative p-3 rounded-xl overflow-hidden shrink-0 text-zinc-900 dark:text-white group-hover:shadow-xl transition-shadow">
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 dark:opacity-30`} />
-        <div className="relative z-10">
-          <Icon size={24} />
-        </div>
+      <div
+        className="p-2.5 rounded-lg shrink-0"
+        style={{ background: `${accentColor}15`, color: accentColor }}
+      >
+        <Icon size={20} />
       </div>
     </div>
+    {/* Bottom accent bar */}
+    <div
+      className="absolute bottom-0 left-0 right-0 h-[3px] opacity-60 group-hover:opacity-100 transition-opacity"
+      style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }}
+    />
   </div>
 );
+
+// Custom tooltip for charts
+const ChartTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      className="rounded-lg px-3 py-2 text-xs shadow-xl"
+      style={{
+        background: 'var(--color-bg-elevated)',
+        border: '1px solid var(--color-border)',
+        color: 'var(--color-text-primary)',
+      }}
+    >
+      <p className="font-semibold mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full inline-block" style={{ background: p.color }} />
+          {p.name}: {formatCurrency(p.value)}
+        </p>
+      ))}
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const [data, setData] = useState(null);
@@ -54,22 +90,15 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <Skeleton width="40px" height="40px" className="rounded-xl" />
-          <Skeleton width="200px" height="32px" />
-        </div>
-        <div className="grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Skeleton width="250px" height="32px" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {Array(5).fill(0).map((_, i) => <SkeletonCard key={i} />)}
         </div>
-        <div className="grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Skeleton width="100%" height="300px" className="glass-card" />
-            <Skeleton width="100%" height="300px" className="glass-card" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Skeleton width="100%" height="320px" className="card" />
           </div>
-          <div className="glass-card p-5">
-            <Skeleton width="150px" height="24px" className="mb-4" />
-            {Array(6).fill(0).map((_, i) => <SkeletonRow key={i} />)}
-          </div>
+          <Skeleton width="100%" height="320px" className="card" />
         </div>
       </div>
     );
@@ -80,13 +109,16 @@ export default function DashboardPage() {
   }
 
   const { statusCounts, portfolio, categoryValues, recentActivity } = data;
+  const depreciationPercent = portfolio.totalOriginalValue > 0
+    ? ((portfolio.totalCurrentValue / portfolio.totalOriginalValue) * 100)
+    : 0;
 
   // Pie chart data
   const pieData = [
-    { name: 'In Use', value: statusCounts.inUse, color: getStatusConfig('IN_USE').color },
-    { name: 'Available', value: statusCounts.available, color: getStatusConfig('AVAILABLE').color },
-    { name: 'Repair', value: statusCounts.underRepair, color: getStatusConfig('UNDER_REPAIR').color },
-    { name: 'Retired', value: statusCounts.retired, color: getStatusConfig('RETIRED').color },
+    { name: 'In Use', value: statusCounts.inUse, color: '#22c55e' },
+    { name: 'Available', value: statusCounts.available, color: '#3b82f6' },
+    { name: 'Repair', value: statusCounts.underRepair, color: '#f59e0b' },
+    { name: 'Retired', value: statusCounts.retired, color: '#6b7280' },
   ].filter(d => d.value > 0);
 
   // Bar chart data
@@ -94,164 +126,319 @@ export default function DashboardPage() {
     name: cat.charAt(0) + cat.slice(1).toLowerCase(),
     value: vals.current,
     original: vals.original,
-  })).sort((a, b) => b.value - a.value);
+  })).sort((a, b) => b.original - a.original).slice(0, 8);
 
+  // Department distribution data
+  const deptData = {};
+  // We can derive department info from category values or show a simple breakdown
+  
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl">
-            <LayoutDashboard size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text-transparent">
-              Dashboard Overview
-            </h1>
-            <p className="text-sm text-zinc-500">Real-time asset insights and portfolio value</p>
-          </div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+            Dashboard Overview
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
+            Real-time asset insights and portfolio health
+          </p>
+        </div>
+        <div
+          className="text-xs px-3 py-1.5 rounded-lg font-medium"
+          style={{
+            background: 'var(--accent-bg)',
+            color: 'var(--accent)',
+          }}
+        >
+          Last updated: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 stagger">
+      {/* KPI Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 stagger">
         <StatCard
-          icon={Monitor}
+          icon={Package}
           title="Total Assets"
           value={statusCounts.total}
-          gradient="from-emerald-500 to-teal-600"
+          accentColor="#e86c30"
         />
         <StatCard
-          icon={CreditCard}
-          title="Total Value"
+          icon={DollarSign}
+          title="Portfolio Value"
           value={formatCurrency(portfolio.totalCurrentValue)}
-          subtitle={`${formatPercent((portfolio.totalCurrentValue / portfolio.totalOriginalValue) * 100)} of original value`}
-          gradient="from-blue-500 to-indigo-600"
+          subtitle={`${formatPercent(depreciationPercent)} of original`}
+          accentColor="#3b82f6"
+        />
+        <StatCard
+          icon={TrendingDown}
+          title="Monthly Depreciation"
+          value={formatCurrency(portfolio.totalCurrentValue - portfolio.totalProjectedNextMonth)}
+          accentColor="#ef4444"
         />
         <StatCard
           icon={CheckCircle2}
           title="In Use"
           value={statusCounts.inUse}
-          gradient="from-emerald-500 to-green-600"
-        />
-        <StatCard
-          icon={Activity}
-          title="Available"
-          value={statusCounts.available}
-          gradient="from-cyan-500 to-blue-600"
+          subtitle={`${statusCounts.available} available`}
+          accentColor="#22c55e"
         />
         <StatCard
           icon={AlertTriangle}
           title="Under Repair"
           value={statusCounts.underRepair}
-          gradient="from-amber-500 to-orange-600"
+          subtitle={`${statusCounts.retired} retired`}
+          accentColor="#f59e0b"
         />
       </div>
 
-      <div className="grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-in">
-        {/* Charts Column */}
-        <div className="lg:col-span-2 space-y-6 flex-col">
-          
-          {/* Portfolio Depreciation */}
-          <div className="glass-card p-6 flex-1 border-zinc-200/50 dark:border-zinc-800/50">
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-6 flex items-center gap-2">
-              <Activity size={18} className="text-blue-500" /> Value by Category
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Value by Category - Bar Chart */}
+        <div className="lg:col-span-2 card overflow-hidden">
+          <div className="card-header">
+            <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+              <Activity size={16} style={{ color: 'var(--accent)' }} />
+              Value by Category
             </h3>
-            <div className="h-[280px]">
+          </div>
+          <div className="p-5">
+            <div style={{ height: 280 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
-                  <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val/1000}k`} />
-                  <RechartsTooltip 
-                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px' }}
-                    itemStyle={{ color: '#e4e4e7' }}
-                    formatter={(value) => formatCurrency(value)}
+                  <XAxis
+                    dataKey="name"
+                    stroke="var(--color-text-tertiary)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
                   />
-                  <Legend verticalAlign="top" height={36} iconType="circle" />
-                  <Bar dataKey="original" name="Original Cost" fill="#3f3f46" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="value" name="Current Value" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <YAxis
+                    stroke="var(--color-text-tertiary)"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(val) => `₱${val / 1000}k`}
+                  />
+                  <RechartsTooltip content={<ChartTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}
+                  />
+                  <Bar dataKey="original" name="Original Cost" fill="#404040" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" name="Current Value" fill="#e86c30" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
+        </div>
 
-          <div className="grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Status Chart */}
-            <div className="glass-card p-6 border-zinc-200/50 dark:border-zinc-800/50">
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Asset Status</h3>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
-                      {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                    </Pie>
-                    <RechartsTooltip
-                      contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px' }}
-                      itemStyle={{ color: '#e4e4e7' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+        {/* Status Donut Chart */}
+        <div className="card overflow-hidden">
+          <div className="card-header">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              Asset Status
+            </h3>
+          </div>
+          <div className="p-5">
+            <div style={{ height: 200 }} className="relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div
+                        className="rounded-lg px-3 py-2 text-xs shadow-xl"
+                        style={{
+                          background: 'var(--color-bg-elevated)',
+                          border: '1px solid var(--color-border)',
+                          color: 'var(--color-text-primary)',
+                        }}
+                      >
+                        <span style={{ color: payload[0].payload.color }}>{payload[0].name}</span>
+                        : {payload[0].value}
+                      </div>
+                    );
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Center label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  {statusCounts.total}
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
+                  Total
+                </span>
               </div>
             </div>
+            
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {pieData.map((item) => (
+                <div key={item.name} className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.color }} />
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{item.name}</span>
+                  <span className="ml-auto font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Monthly Forecast */}
-            <div className="glass-card p-6 border-zinc-200/50 dark:border-zinc-800/50 flex-col justify-center">
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-6">Depreciation Forecast</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 rounded-xl bg-white/50 dark:bg-zinc-900/50">
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">Current Portfolio</span>
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">{formatCurrency(portfolio.totalCurrentValue)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-xl bg-amber-500/10 border-amber-500/20">
-                  <span className="text-sm text-amber-500 font-medium">Next Month Est.</span>
-                  <span className="font-semibold text-amber-400">{formatCurrency(portfolio.totalProjectedNextMonth)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3">
-                  <span className="text-sm text-zinc-500">Monthly Depreciation</span>
-                  <span className="font-medium text-rose-400">-{formatCurrency(portfolio.totalCurrentValue - portfolio.totalProjectedNextMonth)}</span>
-                </div>
+      {/* Bottom Row: Depreciation Forecast + Activity Log */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Depreciation Forecast */}
+        <div className="card overflow-hidden">
+          <div className="card-header">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              Depreciation Forecast
+            </h3>
+          </div>
+          <div className="p-5 space-y-4">
+            <div
+              className="p-3.5 rounded-lg flex items-center justify-between"
+              style={{ background: 'var(--color-bg-surface-hover)' }}
+            >
+              <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                Current Portfolio
+              </span>
+              <span className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                {formatCurrency(portfolio.totalCurrentValue)}
+              </span>
+            </div>
+
+            <div
+              className="p-3.5 rounded-lg flex items-center justify-between"
+              style={{ background: 'rgba(232, 108, 48, 0.08)', border: '1px solid rgba(232, 108, 48, 0.15)' }}
+            >
+              <span className="text-xs font-medium" style={{ color: '#e86c30' }}>
+                Next Month Est.
+              </span>
+              <span className="text-sm font-bold" style={{ color: '#e86c30' }}>
+                {formatCurrency(portfolio.totalProjectedNextMonth)}
+              </span>
+            </div>
+
+            <div className="p-3.5 flex items-center justify-between">
+              <span className="text-xs font-medium" style={{ color: 'var(--color-text-tertiary)' }}>
+                Monthly Loss
+              </span>
+              <span className="text-sm font-semibold flex items-center gap-1" style={{ color: '#ef4444' }}>
+                <ArrowDownRight size={14} />
+                -{formatCurrency(portfolio.totalCurrentValue - portfolio.totalProjectedNextMonth)}
+              </span>
+            </div>
+
+            <div
+              className="p-3.5 rounded-lg"
+              style={{ background: 'var(--color-bg-surface-hover)' }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                  Value Retained
+                </span>
+                <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  {formatPercent(depreciationPercent)}
+                </span>
+              </div>
+              <div
+                className="w-full h-2 rounded-full overflow-hidden"
+                style={{ background: 'var(--color-border)' }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${depreciationPercent}%`,
+                    background: 'linear-gradient(90deg, #e86c30, #fb923c)',
+                    animation: 'progressFill 1s ease-out',
+                  }}
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Activity Sidebar */}
-        <div className="glass-card flex-col border-zinc-200/50 dark:border-zinc-800/50 h-[500px] lg:h-[calc(100vh-140px)] lg:sticky top-[88px]">
-          <div className="p-5 border-b border-zinc-200/50 dark:border-zinc-800/50">
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Activity Log</h3>
-            <p className="text-xs text-zinc-500 mt-1">Latest asset movements and updates</p>
+        {/* Activity Log */}
+        <div className="lg:col-span-2 card overflow-hidden flex flex-col" style={{ maxHeight: 420 }}>
+          <div className="card-header shrink-0">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              Recent Activity
+            </h3>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-md" style={{
+              background: 'var(--accent-bg)',
+              color: 'var(--accent)',
+            }}>
+              {recentActivity.length} entries
+            </span>
           </div>
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto">
             {recentActivity.length === 0 ? (
-              <div className="p-8 text-center text-zinc-500 text-sm">No recent activity</div>
+              <div className="p-8 text-center text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+                No recent activity
+              </div>
             ) : (
-              <div className="space-y-1">
+              <div className="divide-y" style={{ borderColor: 'var(--color-border-subtle)' }}>
                 {recentActivity.map((log) => (
-                  <div key={log.id} className="p-3 rounded-xl hover:bg-zinc-100/50 dark:bg-zinc-800/50 transition-colors group">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 group-hover:bg-zinc-700 transition-colors">
-                        {log.action}
-                      </span>
-                      <span className="text-[10px] text-zinc-500 bg-white/50 dark:bg-zinc-900/50 px-2 py-0.5 rounded-md">
-                        {timeAgo(log.timestamp)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300 mt-2 line-clamp-2">{log.details}</p>
-                    {(log.asset?.name || log.employeeName) && (
-                      <div className="flex-wrap gap-2 mt-2 pt-2 border-t border-zinc-200/50 dark:border-zinc-800/50">
-                        {log.asset?.name && (
-                          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                            <Monitor size={10} className="text-emerald-500" /> {log.asset.name}
-                          </span>
-                        )}
-                        {log.employeeName && (
-                          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                            👤 {log.employeeName}
-                          </span>
-                        )}
+                  <div
+                    key={log.id}
+                    className="px-5 py-3.5 flex items-start gap-3 transition-colors hover:bg-[var(--color-bg-surface-hover)]"
+                  >
+                    {/* Action dot */}
+                    <div
+                      className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                      style={{
+                        background: log.action === 'CREATED' ? '#22c55e'
+                          : log.action === 'ASSIGNED' || log.action === 'REASSIGNED' ? '#3b82f6'
+                          : log.action === 'UPDATED' || log.action === 'STATUS_CHANGED' ? '#e86c30'
+                          : log.action === 'UNASSIGNED' ? '#f59e0b'
+                          : '#6b7280',
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <span
+                          className="text-[11px] font-semibold px-1.5 py-0.5 rounded"
+                          style={{
+                            background: 'var(--color-bg-surface-hover)',
+                            color: 'var(--color-text-secondary)',
+                          }}
+                        >
+                          {log.action}
+                        </span>
+                        <span className="text-[10px] shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>
+                          {timeAgo(log.timestamp)}
+                        </span>
                       </div>
-                    )}
+                      <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--color-text-secondary)' }}>
+                        {log.details}
+                      </p>
+                      {log.asset?.name && (
+                        <span className="text-[10px] mt-1 flex items-center gap-1" style={{ color: 'var(--color-text-tertiary)' }}>
+                          <Monitor size={10} style={{ color: 'var(--accent)' }} />
+                          {log.asset.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

@@ -4,10 +4,16 @@ export default function ThemeToggle({ isDark, onToggle }) {
   return (
     <button
       onClick={onToggle}
-      className="p-2 rounded-lg hover:bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:text-zinc-200 transition-all duration-200"
+      className="p-2 rounded-lg transition-all duration-300 hover:bg-[var(--color-bg-surface-hover)]"
+      style={{ color: 'var(--color-text-secondary)' }}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      <div
+        className="transition-transform duration-300"
+        style={{ transform: isDark ? 'rotate(180deg)' : 'rotate(0deg)' }}
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </div>
     </button>
   );
 }

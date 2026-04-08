@@ -8,8 +8,11 @@ const baseAssetSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
   category: z.string().min(1, 'Category is required').max(100),
   serialNumber: z.string().min(1, 'Serial number is required').max(100),
-  purchaseDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: 'Invalid date format',
+  purchaseDate: z.string().refine((val) => {
+    const d = new Date(val);
+    return !isNaN(d.getTime()) && d.getFullYear() >= 1900 && d.getFullYear() <= 2100;
+  }, {
+    message: 'Invalid date or year out of range',
   }),
   purchasePrice: z.number().positive('Purchase price must be positive'),
   salvageValue: z.number().min(0, 'Salvage value must be >= 0'),

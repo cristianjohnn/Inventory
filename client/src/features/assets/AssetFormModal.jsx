@@ -6,7 +6,7 @@ import Modal from '../../components/ui/Modal.jsx';
 
 export default function AssetFormModal({ isOpen, onClose, asset = null, onSuccess }) {
   const isEdit = !!asset;
-  
+
   const [formData, setFormData] = useState({
     name: '',
     category: 'LAPTOP',
@@ -47,7 +47,6 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
         notes: asset.notes || '',
       });
     } else if (isOpen && !asset) {
-      // Reset form
       setFormData({
         name: '',
         category: 'LAPTOP',
@@ -81,15 +80,14 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
     setLoading(true);
 
     try {
-      // Clean up data before sending
       const payload = { ...formData };
-      
+
       if (payload.depreciationMethod !== 'UNITS_OF_PRODUCTION') {
         payload.totalUnits = null;
         payload.unitsUsed = null;
       }
       if (!payload.warrantyExpiry) payload.warrantyExpiry = null;
-      
+
       if (isEdit) {
         await assetsApi.update(asset.id, payload);
         toast.success('Asset updated successfully');
@@ -97,7 +95,7 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
         await assetsApi.create(payload);
         toast.success('Asset created successfully');
       }
-      
+
       onSuccess?.();
       onClose();
     } catch (err) {
@@ -114,102 +112,158 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? 'Edit Asset' : 'Add New Asset'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid-cols-1 md:grid-cols-2 gap-4">
-          
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Asset Name *</label>
-            <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" placeholder="e.g. MacBook Pro 16" />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Category *</label>
-            <input type="text" list="categories" placeholder="Select or type custom category..." name="category" value={formData.category} onChange={handleChange} required className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-            <datalist id="categories">
-              {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </datalist>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Serial Number *</label>
-            <input required type="text" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Purchase Date *</label>
-            <input required type="date" name="purchaseDate" value={formData.purchaseDate} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200 outline-none" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Purchase Price (₱) *</label>
-            <input type="number" step="0.01" name="purchasePrice" value={formData.purchasePrice} onChange={handleChange} required className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Useful Life (Years) *</label>
-            <input required type="number" min="1" step="1" name="usefulLifeYears" value={formData.usefulLifeYears} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Salvage Value (₱) *</label>
-            <input type="number" step="0.01" name="salvageValue" value={formData.salvageValue} onChange={handleChange} required className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Depreciation Method *</label>
-            <select name="depreciationMethod" value={formData.depreciationMethod} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200">
-              {DEPRECIATION_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-            </select>
-          </div>
-
-          {formData.depreciationMethod === 'UNITS_OF_PRODUCTION' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Total Units Lifecycle *</label>
-                <input required type="number" min="1" name="totalUnits" value={formData.totalUnits} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Units Used</label>
-                <input type="number" min="0" name="unitsUsed" value={formData.unitsUsed} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-              </div>
-            </>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-            <select name="status" value={formData.status} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200">
-              {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Department</label>
-            <select name="department" value={formData.department} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200">
-              <option value="">None / Unassigned</option>
-              {DEPARTMENT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Warranty Expiry</label>
-            <input type="date" name="warrantyExpiry" value={formData.warrantyExpiry} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Location</label>
-            <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200" />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Notes</label>
-            <textarea name="notes" rows="3" value={formData.notes} onChange={handleChange} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-800 dark:text-zinc-200 resize-none" />
+        {/* General Info Section */}
+        <div>
+          <div className="form-section-title">General Information</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="form-label">Asset Name *</label>
+              <input
+                required type="text" name="name" value={formData.name} onChange={handleChange}
+                className="form-input" placeholder="e.g. MacBook Pro 16"
+              />
+            </div>
+            <div>
+              <label className="form-label">Category *</label>
+              <input
+                type="text" list="categories" placeholder="Select or type..."
+                name="category" value={formData.category} onChange={handleChange}
+                required className="form-input"
+              />
+              <datalist id="categories">
+                {CATEGORY_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </datalist>
+            </div>
+            <div>
+              <label className="form-label">Serial Number *</label>
+              <input
+                required type="text" name="serialNumber" value={formData.serialNumber}
+                onChange={handleChange} className="form-input"
+              />
+            </div>
+            <div>
+              <label className="form-label">Status</label>
+              <select name="status" value={formData.status} onChange={handleChange} className="form-input">
+                {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Department</label>
+              <select name="department" value={formData.department} onChange={handleChange} className="form-input">
+                <option value="">None / Unassigned</option>
+                {DEPARTMENT_OPTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors">
+        {/* Financial Section */}
+        <div>
+          <div className="form-section-title">Financial Data</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label">Purchase Date *</label>
+              <input
+                required type="date" name="purchaseDate" value={formData.purchaseDate}
+                onChange={handleChange} className="form-input"
+              />
+            </div>
+            <div>
+              <label className="form-label">Purchase Price (₱) *</label>
+              <input
+                type="number" step="0.01" name="purchasePrice" value={formData.purchasePrice}
+                onChange={handleChange} required className="form-input"
+              />
+            </div>
+            <div>
+              <label className="form-label">Salvage Value (₱) *</label>
+              <input
+                type="number" step="0.01" name="salvageValue" value={formData.salvageValue}
+                onChange={handleChange} required className="form-input"
+              />
+            </div>
+            <div>
+              <label className="form-label">Useful Life (Years) *</label>
+              <input
+                required type="number" min="1" step="1" name="usefulLifeYears"
+                value={formData.usefulLifeYears} onChange={handleChange} className="form-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Depreciation Section */}
+        <div>
+          <div className="form-section-title">Depreciation</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={formData.depreciationMethod !== 'UNITS_OF_PRODUCTION' ? 'md:col-span-2' : ''}>
+              <label className="form-label">Depreciation Method *</label>
+              <select
+                name="depreciationMethod" value={formData.depreciationMethod}
+                onChange={handleChange} className="form-input"
+              >
+                {DEPRECIATION_METHODS.map(m => (
+                  <option key={m.value} value={m.value}>{m.label} — {m.description}</option>
+                ))}
+              </select>
+            </div>
+            {formData.depreciationMethod === 'UNITS_OF_PRODUCTION' && (
+              <>
+                <div>
+                  <label className="form-label">Total Units Lifecycle *</label>
+                  <input
+                    required type="number" min="1" name="totalUnits" value={formData.totalUnits}
+                    onChange={handleChange} className="form-input"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Units Used</label>
+                  <input
+                    type="number" min="0" name="unitsUsed" value={formData.unitsUsed}
+                    onChange={handleChange} className="form-input"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Additional Info */}
+        <div>
+          <div className="form-section-title">Additional Info</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label">Location</label>
+              <input
+                type="text" name="location" value={formData.location}
+                onChange={handleChange} className="form-input" placeholder="e.g. Main Office, Room 201"
+              />
+            </div>
+            <div>
+              <label className="form-label">Warranty Expiry</label>
+              <input
+                type="date" name="warrantyExpiry" value={formData.warrantyExpiry}
+                onChange={handleChange} className="form-input"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="form-label">Notes</label>
+              <textarea
+                name="notes" rows="3" value={formData.notes} onChange={handleChange}
+                className="form-input resize-none"
+                placeholder="Any additional notes about this asset..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+          <button type="button" onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
-          <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-500 text-zinc-900 dark:text-white transition-colors disabled:opacity-50 shadow-lg shadow-emerald-500/20">
+          <button type="submit" disabled={loading} className="btn btn-primary">
             {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Asset'}
           </button>
         </div>
