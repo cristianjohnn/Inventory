@@ -77,9 +77,10 @@ When a new developer joins the team, share this checklist with them:
 - [ ] Read the [README.md](../README.md) — understand the project and setup
 - [ ] Clone the repo and run the [local setup steps](../README.md#local-setup-step-by-step)
 - [ ] Read [CONTRIBUTING.md](../CONTRIBUTING.md) — understand branch naming, commit format, PR process
-- [ ] Read [ARCHITECTURE.md](ARCHITECTURE.md) — understand folder structure and data models
+- [ ] Read [ARCHITECTURE.md](ARCHITECTURE.md) — understand folder structure, data models, API routes
 - [ ] Read [BRANCH_STRATEGY.md](BRANCH_STRATEGY.md) — understand the branch flow
-- [ ] Identify your feature folder assignment (which `features/` folder you'll work in)
+- [ ] Read [WORK_SPLIT.md](WORK_SPLIT.md) — understand developer assignments and file ownership
+- [ ] Identify your role assignment (Developer A–E) from the tech lead
 - [ ] Create your first branch: `git checkout -b feature/my-first-task develop`
 
 ### First PR Checklist
@@ -95,21 +96,22 @@ When a new developer joins the team, share this checklist with them:
 
 To avoid merge conflicts, assign each developer to a specific feature domain:
 
-| Developer | Feature Folder              | Responsibility                        |
-|-----------|-----------------------------|---------------------------------------|
-| Dev A     | `client/src/features/dashboard/` | Dashboard page, charts, activity feed |
-| Dev B     | `client/src/features/assets/`    | Asset CRUD, search, filters, detail   |
-| Dev C     | `client/src/features/assignment/`| Employee assignment modal + logic     |
-| Dev D     | `server/src/controllers/`        | API route handlers                    |
-| Dev E     | `server/src/services/`           | Business logic + depreciation engine  |
+| Developer | Role | Feature Folders | Responsibility |
+|-----------|------|----------------|----------------|
+| Dev A | Asset Management | `features/assets/` (4 files), `server/controllers/assetController.js`, `server/routes/assets.js` | Asset CRUD, search, filters, assignment, detail page |
+| Dev B | Dashboard & Analytics | `features/dashboard/` (1 file), `features/reports/` (1 file), `server/controllers/dashboardController.js`, `server/routes/dashboard.js` | KPI stats, charts, reports, activity feed |
+| Dev C | Depreciation Engine | `server/services/depreciationService.js` | 3 depreciation methods + enrichment |
+| Dev D | Middleware & Validation | `server/middleware/`, `server/utils/schemas.js`, `features/auth/` (1 file) | Error handling, Zod schemas, auth UI |
+| Dev E | UI & Layout | `components/layout/` (5 files), `components/ui/` (11 files), `hooks/` (2 files), `features/profile/` (5 files), `features/notifications/` (1 file) | Design system, theming, shell, profile |
 
 ### Shared Code Rules
 
 The following folders are **shared** — multiple developers may need to touch these:
 
-- `client/src/components/ui/` — Reusable UI primitives (Modal, Badge, etc.)
-- `client/src/hooks/` — Shared hooks
-- `client/src/utils/` — Utility functions
+- `client/src/components/ui/` — Reusable UI primitives (Modal, Badge, ProgressBar, etc.)
+- `client/src/hooks/` — Shared hooks (useDebounce, useTheme)
+- `client/src/utils/` — Utility functions (constants, formatters, exportCsv)
+- `client/src/api/client.js` — API wrapper (add methods, don't modify existing)
 - `server/src/middleware/` — Express middleware
 
 **Rules for shared code:**
