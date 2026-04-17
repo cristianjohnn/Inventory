@@ -4,13 +4,14 @@ import {
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import {
-  FileBarChart, Download, TrendingDown, DollarSign, Calendar, Package
+  FileBarChart, Download, TrendingDown, PhilippinePeso, Calendar, Package
 } from 'lucide-react';
 import { dashboardApi } from '../../api/client.js';
 import { assetsApi } from '../../api/client.js';
 import { formatCurrency, formatPercent, formatDate } from '../../utils/formatters.js';
 import { getCategoryConfig, DEPARTMENT_OPTIONS, DEPRECIATION_METHODS } from '../../utils/constants.js';
 import { exportToCsv } from '../../utils/exportCsv.js';
+import { exportToPdf } from '../../utils/exportPdf.js';
 import Skeleton, { SkeletonCard } from '../../components/ui/Skeleton.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import ProgressBar from '../../components/ui/ProgressBar.jsx';
@@ -91,7 +92,7 @@ export default function ReportsPage() {
     methodCounts[mLabel] = (methodCounts[mLabel] || 0) + 1;
   });
   const methodData = Object.entries(methodCounts).map(([name, value]) => ({ name, value }));
-  const methodColors = ['#e86c30', '#3b82f6', '#22c55e', '#f59e0b'];
+  const methodColors = ['#e86c30', '#f97316', '#fb923c', '#fdba74'];
 
   // Depreciation schedule (top 15 assets sorted by monthly depreciation)
   const schedule = [...assets]
@@ -106,6 +107,41 @@ export default function ReportsPage() {
     current: Math.round(vals.current),
     depreciated: Math.round(vals.original - vals.current),
   })).sort((a, b) => b.original - a.original);
+
+  // Warranty Status
+  const now = new Date();
+  const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const warrantyCounts = { Active: 0, ExpiringSoon: 0, Expired: 0, None: 0 };
+  
+  assets.forEach(a => {
+    if (!a.warrantyExpiry) {
+      warrantyCounts.None++;
+    } else {
+      const exp = new Date(a.warrantyExpiry);
+      if (exp < now) warrantyCounts.Expired++;
+      else if (exp <= thirtyDays) warrantyCounts.ExpiringSoon++;
+      else warrantyCounts.Active++;
+    }
+  });
+  
+  const warrantyData = [
+    { name: 'Active', value: warrantyCounts.Active, color: '#10b981' },
+    { name: 'Expiring <30d', value: warrantyCounts.ExpiringSoon, color: '#f59e0b' },
+    { name: 'Expired', value: warrantyCounts.Expired, color: '#f43f5e' },
+    { name: 'No Warranty', value: warrantyCounts.None, color: '#525252' },
+  ].filter(d => d.value > 0);
+
+  // Asset Age Distribution
+  const ageBuckets = { '< 1 Year': 0, '1-2 Years': 0, '3-5 Years': 0, '5+ Years': 0 };
+  assets.forEach(a => {
+    if (!a.purchaseDate) return;
+    const ageYears = (now - new Date(a.purchaseDate)) / (1000 * 60 * 60 * 24 * 365.25);
+    if (ageYears < 1) ageBuckets['< 1 Year']++;
+    else if (ageYears < 3) ageBuckets['1-2 Years']++;
+    else if (ageYears <= 5) ageBuckets['3-5 Years']++;
+    else ageBuckets['5+ Years']++;
+  });
+  const ageData = Object.entries(ageBuckets).map(([name, count]) => ({ name, count }));
 
   const handleExportSchedule = () => {
     exportToCsv(schedule.map(a => ({
@@ -132,6 +168,20 @@ export default function ReportsPage() {
             Financial depreciation reports and asset distribution
           </p>
         </div>
+        <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+          <button 
+            onClick={() => exportToCsv(assets, `full-report-${new Date().toISOString().split('T')[0]}.csv`)} 
+            className="btn btn-secondary flex-1 sm:flex-none justify-center text-xs h-9"
+          >
+            <Download size={14} className="mr-1" /> CSV
+          </button>
+          <button 
+            onClick={() => exportToPdf(assets, `full-report-${new Date().toISOString().split('T')[0]}.pdf`)} 
+            className="btn btn-primary flex-1 sm:flex-none justify-center text-xs h-9"
+          >
+            <FileBarChart size={14} className="mr-1" /> PDF Report
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -139,7 +189,7 @@ export default function ReportsPage() {
         <div className="card p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-              <DollarSign size={18} />
+              <PhilippinePeso size={18} />
             </div>
             <span className="text-xs font-semibold uppercase" style={{ color: 'var(--color-text-tertiary)' }}>
               Original Investment
@@ -199,10 +249,10 @@ export default function ReportsPage() {
               <BarChart data={catBarData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                 <XAxis dataKey="name" stroke="var(--color-text-tertiary)" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--color-text-tertiary)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `₱${v / 1000}k`} />
-                <RechartsTooltip content={<ChartTooltip />} />
+                <RechartsTooltip content={<ChartTooltip />} cursor={{ fill: 'var(--color-bg-surface-hover)' }} wrapperStyle={{ outline: 'none' }} />
                 <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
-                <Bar dataKey="original" name="Original" fill="#404040" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="current" name="Current" fill="#e86c30" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="original" name="Original" fill="#404040" radius={[3, 3, 0, 0]} activeBar={false} />
+                <Bar dataKey="current" name="Current" fill="#e86c30" radius={[3, 3, 0, 0]} activeBar={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -220,8 +270,8 @@ export default function ReportsPage() {
               <BarChart data={deptData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                 <XAxis type="number" stroke="var(--color-text-tertiary)" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis type="category" dataKey="name" stroke="var(--color-text-tertiary)" fontSize={10} tickLine={false} axisLine={false} width={100} />
-                <RechartsTooltip content={<ChartTooltip />} />
-                <Bar dataKey="count" name="Assets" fill="#e86c30" radius={[0, 4, 4, 0]} barSize={18} />
+                <RechartsTooltip content={<ChartTooltip />} cursor={{ fill: 'var(--color-bg-surface-hover)' }} wrapperStyle={{ outline: 'none' }} />
+                <Bar dataKey="count" name="Assets" fill="#e86c30" radius={[0, 4, 4, 0]} barSize={18} activeBar={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -244,7 +294,7 @@ export default function ReportsPage() {
                   <Pie data={methodData} innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" stroke="none">
                     {methodData.map((_, i) => <Cell key={i} fill={methodColors[i % methodColors.length]} />)}
                   </Pie>
-                  <RechartsTooltip content={({ active, payload }) => {
+                  <RechartsTooltip wrapperStyle={{ outline: 'none' }} content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     return (
                       <div className="rounded-lg px-3 py-2 text-xs shadow-xl"
@@ -328,6 +378,78 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+
+      {/* Warranty & Age Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8 mt-6">
+        {/* Warranty Status */}
+        <div className="card overflow-hidden">
+          <div className="card-header">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              Warranty Status
+            </h3>
+          </div>
+          <div className="p-5 flex flex-col sm:flex-row items-center gap-6" style={{ height: 280 }}>
+            <div className="flex-1 w-full relative" style={{ height: 200 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={warrantyData} innerRadius={55} outerRadius={85} paddingAngle={2} dataKey="value" stroke="none">
+                    {warrantyData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip wrapperStyle={{ outline: 'none' }} content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="rounded-lg px-3 py-2 text-xs shadow-xl"
+                        style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>
+                        <span className="font-semibold" style={{ color: payload[0].payload.color }}>{payload[0].name}</span>
+                        : {payload[0].value} assets
+                      </div>
+                    );
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                  {assets.length}
+                </span>
+                <span className="text-[10px] uppercase font-semibold mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>Total</span>
+              </div>
+            </div>
+            <div className="flex-1 w-full space-y-3">
+              {warrantyData.map(item => (
+                <div key={item.name} className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-md" style={{ background: item.color }} />
+                    <span style={{ color: 'var(--color-text-secondary)' }}>{item.name}</span>
+                  </div>
+                  <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Asset Age Distribution */}
+        <div className="card overflow-hidden">
+          <div className="card-header">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+              Asset Age (Years)
+            </h3>
+          </div>
+          <div className="p-5" style={{ height: 280 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={ageData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="name" stroke="var(--color-text-tertiary)" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--color-text-tertiary)" fontSize={11} tickLine={false} axisLine={false} />
+                <RechartsTooltip content={<ChartTooltip />} cursor={{fill: 'var(--color-bg-surface-hover)'}} wrapperStyle={{ outline: 'none' }} />
+                <Bar dataKey="count" name="Assets" fill="var(--accent)" radius={[4, 4, 0, 0]} barSize={40} activeBar={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

@@ -96,13 +96,13 @@ When a new developer joins the team, share this checklist with them:
 
 To avoid merge conflicts, assign each developer to a specific feature domain:
 
-| Developer | Role | Feature Folders | Responsibility |
-|-----------|------|----------------|----------------|
-| Dev A | Asset Management | `features/assets/` (4 files), `server/controllers/assetController.js`, `server/routes/assets.js` | Asset CRUD, search, filters, assignment, detail page |
-| Dev B | Dashboard & Analytics | `features/dashboard/` (1 file), `features/reports/` (1 file), `server/controllers/dashboardController.js`, `server/routes/dashboard.js` | KPI stats, charts, reports, activity feed |
-| Dev C | Depreciation Engine | `server/services/depreciationService.js` | 3 depreciation methods + enrichment |
-| Dev D | Middleware & Validation | `server/middleware/`, `server/utils/schemas.js`, `features/auth/` (1 file) | Error handling, Zod schemas, auth UI |
-| Dev E | UI & Layout | `components/layout/` (5 files), `components/ui/` (11 files), `hooks/` (2 files), `features/profile/` (5 files), `features/notifications/` (1 file) | Design system, theming, shell, profile |
+| Developer | Role | Domain | Responsibilities |
+|-----------|------|--------|------------------|
+| **Dev A** | Frontend | `features/assets/`, `api/client.js` | Asset CRUD UI, modals, filters, assignment workflows |
+| **Dev B** | Frontend | `features/dashboard/`, `features/reports/` | KPI stats, Recharts mapping, depreciation dashboards |
+| **Dev C** | Frontend | `components/`, `features/profile/`, `features/auth/`, `index.css` | UI/UX primitives, layouts, theming, user profile UI |
+| **Dev D** | Backend | `server/controllers/`, `server/routes/` | API routing, data controllers, Prisma queries |
+| **Dev E** | Backend | `server/services/`, `server/middleware/`, `server/utils/schemas.js` | Depreciation engine, global error handling, Zod validation |
 
 ### Shared Code Rules
 

@@ -1,8 +1,28 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
+const SIZE_DEFAULTS = {
+  sm: { width: 440, minWidth: 360 },
+  md: { width: 540, minWidth: 400 },
+  lg: { width: 680, minWidth: 480 },
+  xl: { width: 900, minWidth: 560 },
+};
+
+export default function Modal({ isOpen, onClose, title, children, size = 'md', resizable = true }) {
   const overlayRef = useRef();
+  const panelRef = useRef();
+  const [dimensions, setDimensions] = useState(null);
+  const [anchor, setAnchor] = useState(null);
+  const dragRef = useRef(null);
+
+  // Reset dimensions when modal opens or size prop changes
+  useEffect(() => {
+    if (isOpen) {
+      setDimensions(null);
+      setAnchor(null);
+    }
+  }, [isOpen, size]);
 
   useEffect(() => {
     const handleEsc = (e) => e.key === 'Escape' && onClose();
@@ -16,68 +36,151 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
     };
   }, [isOpen, onClose]);
 
+  // Resize logic
+  const handleMouseDown = useCallback((e, direction) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const rect = panel.getBoundingClientRect();
+    
+    // Lock the modal to fixed coordinates so it stops mirroring (centering)
+    setAnchor(prev => {
+      const currentLeft = prev?.left ?? rect.left;
+      const currentTop = prev?.top ?? rect.top;
+      
+      dragRef.current = {
+        direction,
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: rect.width,
+        startHeight: rect.height,
+        startLeft: currentLeft,
+        startTop: currentTop,
+      };
+      
+      return prev || { left: currentLeft, top: currentTop };
+    });
+
+    const handleMouseMove = (e) => {
+      if (!dragRef.current) return;
+      const { direction, startX, startY, startWidth, startHeight, startLeft } = dragRef.current;
+      const config = SIZE_DEFAULTS[size] || SIZE_DEFAULTS.md;
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      let newLeft = startLeft;
+
+      if (direction.includes('e')) {
+        newWidth = Math.max(config.minWidth, startWidth + (e.clientX - startX));
+      }
+      if (direction.includes('w')) {
+        // Dragging left edge
+        const diff = e.clientX - startX;
+        newWidth = Math.max(config.minWidth, startWidth - diff);
+        // If we didn't hit minWidth, shift left
+        if (newWidth > config.minWidth) {
+          newLeft = startLeft + diff;
+        }
+      }
+      if (direction.includes('s')) {
+        newHeight = Math.max(300, startHeight + (e.clientY - startY));
+      }
+
+      // Cap at viewport
+      newWidth = Math.min(newWidth, window.innerWidth - 48);
+      newHeight = Math.min(newHeight, window.innerHeight - 48);
+
+      setDimensions({ width: newWidth, height: newHeight });
+      // Only update anchor if we are moving 'w'
+      if (direction.includes('w')) {
+         setAnchor(prev => ({ ...prev, left: newLeft }));
+      }
+    };
+
+    const handleMouseUp = () => {
+      dragRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor =
+      direction === 'se' ? 'nwse-resize' :
+      direction === 'e' ? 'ew-resize' :
+      direction === 's' ? 'ns-resize' : 'nwse-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [size]);
+
   if (!isOpen) return null;
 
-  const sizeClass = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-  }[size];
+  const config = SIZE_DEFAULTS[size] || SIZE_DEFAULTS.md;
+  const panelWidth = dimensions?.width || config.width;
+  const panelHeight = dimensions?.height || undefined;
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 overflow-y-auto animate-fade-in"
-      style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
+      className="modal-overlay"
       onClick={(e) => e.target === overlayRef.current && onClose()}
     >
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="modal-centering" style={anchor ? { justifyContent: 'flex-start', alignItems: 'flex-start', padding: 0 } : {}}>
         <div
-          className={`w-full ${sizeClass} rounded-xl shadow-2xl animate-scale-in overflow-hidden`}
+          ref={panelRef}
+          className="modal-panel"
           style={{
-            background: 'var(--card-bg)',
-            border: '1px solid var(--card-border)',
+            width: `min(${panelWidth}px, calc(100vw - 32px))`,
+            ...(panelHeight ? { height: panelHeight } : {}),
+            ...(anchor ? { marginLeft: anchor.left, marginTop: anchor.top } : {})
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Orange accent bar at top */}
-          <div className="h-1" style={{ background: 'linear-gradient(90deg, #e86c30, #fb923c)' }} />
+          {/* Orange accent bar */}
+          <div className="modal-accent-bar" />
 
           {/* Header */}
-          <div
-            className="flex items-center justify-between px-6 py-4"
-            style={{ borderBottom: '1px solid var(--color-border)' }}
-          >
-            <h2
-              className="text-lg font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: 'var(--color-text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'var(--color-bg-surface-hover)';
-                e.target.style.color = 'var(--color-text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'transparent';
-                e.target.style.color = 'var(--color-text-tertiary)';
-              }}
-            >
+          <div className="modal-header">
+            <h2 className="modal-title">{title}</h2>
+            <button onClick={onClose} className="modal-close-btn" aria-label="Close modal">
               <X size={18} />
             </button>
           </div>
 
-          {/* Content */}
-          <div className="px-6 py-5">
+          {/* Scrollable Content */}
+          <div
+            className="modal-body"
+            style={panelHeight ? { height: panelHeight - 120, maxHeight: 'none' } : {}}
+          >
             {children}
           </div>
+
+          {/* Resize handles */}
+          {resizable && (
+            <>
+              <div
+                className="modal-resize-handle modal-resize-e"
+                onMouseDown={(e) => handleMouseDown(e, 'e')}
+              />
+              <div
+                className="modal-resize-handle modal-resize-w"
+                onMouseDown={(e) => handleMouseDown(e, 'w')}
+              />
+              <div
+                className="modal-resize-handle modal-resize-s"
+                onMouseDown={(e) => handleMouseDown(e, 's')}
+              />
+              <div
+                className="modal-resize-handle modal-resize-se"
+                onMouseDown={(e) => handleMouseDown(e, 'se')}
+              />
+            </>
+          )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

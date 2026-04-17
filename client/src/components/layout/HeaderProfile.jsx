@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { User, Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 export default function HeaderProfile() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -20,9 +22,13 @@ export default function HeaderProfile() {
 
   const handleLogout = () => {
     setIsOpen(false);
+    logout();
     toast.success('Logged out successfully');
-    navigate('/login');
   };
+
+  const initial = user?.firstName?.[0]?.toUpperCase() || 'U';
+  const displayName = user ? `${user.firstName} ${user.lastName}` : 'User';
+  const displayEmail = user?.email || '';
 
   return (
     <div className="relative ml-2" ref={dropdownRef}>
@@ -33,9 +39,9 @@ export default function HeaderProfile() {
           background: 'var(--accent-bg-strong)',
           color: 'var(--accent)',
         }}
-        title="Admin"
+        title={displayName}
       >
-        A
+        {initial}
       </button>
 
       {isOpen && (
@@ -52,11 +58,11 @@ export default function HeaderProfile() {
               className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
               style={{ background: 'var(--accent-bg-strong)', color: 'var(--accent)' }}
             >
-              A
+              {initial}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>IT Admin</p>
-              <p className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>admin@inspireholdings.ph</p>
+              <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>{displayName}</p>
+              <p className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>{displayEmail}</p>
             </div>
           </div>
           

@@ -1,28 +1,38 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, ArrowRight, Sun } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowRight, Sun, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     if (!email || !password) {
       toast.error('Please enter both email and password');
       return;
     }
     
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success('Welcome back to Inspire Holdings!');
+    try {
+      const user = await login(email, password);
+      toast.success(`Welcome back, ${user.firstName}!`);
       navigate('/');
-    }, 1000);
+    } catch (err) {
+      const msg = err.message || 'Login failed. Please try again.';
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -117,12 +127,19 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]" />
                   <input 
-                    type="password" 
+                    type={showPassword ? 'text' : 'password'} 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="filter-input w-full !pl-12 !py-3.5 text-sm transition-all focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent rounded-xl" 
+                    className="filter-input w-full !pl-12 !pr-12 !py-3.5 text-sm transition-all focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent rounded-xl" 
                     placeholder="••••••••"
                   />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 

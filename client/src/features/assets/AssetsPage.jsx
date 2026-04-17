@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Download, Plus, ChevronLeft, ChevronRight, Monitor, Edit, UserPlus, Trash2 } from 'lucide-react';
 import { assetsApi } from '../../api/client.js';
 import { useDebounce } from '../../hooks/useDebounce.js';
+import toast from 'react-hot-toast';
 import { formatCurrency, formatPercent } from '../../utils/formatters.js';
 import { exportToCsv } from '../../utils/exportCsv.js';
 import { CATEGORY_OPTIONS, STATUS_OPTIONS, DEPARTMENT_OPTIONS, getCategoryConfig } from '../../utils/constants.js';
@@ -20,12 +21,39 @@ export default function AssetsPage() {
   const [loading, setLoading] = useState(true);
   const [allCounts, setAllCounts] = useState({ total: 0, inUse: 0, available: 0, underRepair: 0, retired: 0 });
 
-  // Filters
+  // Filters & Sort
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 500);
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState('');
+  const [department, setDepartment] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(1);
+
+  // Bulk Selection
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const toggleSelectAll = () => {
+    if (selectedIds.size === data.data.length && data.data.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(data.data.map(a => a.id)));
+    }
+  };
+  const toggleSelect = (id) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
 
   // Form Modal
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -63,8 +91,11 @@ export default function AssetsPage() {
           search: debouncedSearch,
           status,
           category,
+          department,
           page,
           pageSize: 10,
+          sortBy,
+          sortOrder,
         });
         setData(result);
       } catch (err) {
@@ -79,7 +110,8 @@ export default function AssetsPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, status, category]);
+    setSelectedIds(new Set());
+  }, [debouncedSearch, status, category, department, sortBy, sortOrder]);
 
   const handleExport = async () => {
     try {
@@ -110,7 +142,7 @@ export default function AssetsPage() {
   ];
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -120,10 +152,25 @@ export default function AssetsPage() {
           </h1>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button onClick={handleExport} className="btn btn-secondary">
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2 mr-2">
+              <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+                {selectedIds.size} selected
+              </span>
+              <button 
+                onClick={() => {
+                  toast.error(`Bulk actions coming soon for ${selectedIds.size} items!`);
+                }}
+                className="btn text-xs bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20 px-3 py-1.5 h-8"
+              >
+                Delete Selected
+              </button>
+            </div>
+          )}
+          <button onClick={handleExport} className="btn btn-secondary h-9">
             <Download size={15} /> Export
           </button>
-          <button onClick={() => setIsFormOpen(true)} className="btn btn-primary">
+          <button onClick={() => setIsFormOpen(true)} className="btn btn-primary h-9">
             <Plus size={15} /> Add Asset
           </button>
         </div>
@@ -159,6 +206,16 @@ export default function AssetsPage() {
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
+          <select
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="filter-select w-full sm:w-44"
+          >
+            <option value="">All Departments</option>
+            {DEPARTMENT_OPTIONS.map((d) => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -168,12 +225,30 @@ export default function AssetsPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th style={{ width: 40 }} className="text-center px-4">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-[var(--color-border)] cursor-pointer"
+                    checked={data.data.length > 0 && selectedIds.size === data.data.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
                 <th style={{ width: 40 }}></th>
-                <th>Asset Info</th>
-                <th>Status</th>
-                <th>Department</th>
-                <th>Assigned To</th>
-                <th>Current Value</th>
+                <th onClick={() => handleSort('name')} className="cursor-pointer hover:bg-[var(--color-bg-surface-hover)] transition-colors">
+                  Asset Info {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('status')} className="cursor-pointer hover:bg-[var(--color-bg-surface-hover)] transition-colors">
+                  Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('department')} className="cursor-pointer hover:bg-[var(--color-bg-surface-hover)] transition-colors">
+                  Department {sortBy === 'department' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('assignedEmployee')} className="cursor-pointer hover:bg-[var(--color-bg-surface-hover)] transition-colors">
+                  Assigned To {sortBy === 'assignedEmployee' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('cost')} className="cursor-pointer hover:bg-[var(--color-bg-surface-hover)] transition-colors">
+                  Current Value {sortBy === 'cost' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
                 <th>Remaining</th>
                 <th style={{ width: 50 }}></th>
               </tr>
@@ -202,11 +277,18 @@ export default function AssetsPage() {
                   return (
                     <tr
                       key={asset.id}
-                      onClick={() => navigate(`/assets/${asset.id}`)}
-                      className="cursor-pointer"
+                      className={`transition-colors ${selectedIds.has(asset.id) ? 'bg-[var(--accent-bg-strong)]' : 'hover:bg-[var(--color-bg-table-row-hover)]'}`}
                     >
+                      <td className="text-center px-4">
+                        <input
+                          type="checkbox"
+                          className="rounded border-[var(--color-border)] cursor-pointer"
+                          checked={selectedIds.has(asset.id)}
+                          onChange={() => toggleSelect(asset.id)}
+                        />
+                      </td>
                       {/* Category Icon */}
-                      <td>
+                      <td onClick={() => navigate(`/assets/${asset.id}`)} className="cursor-pointer">
                         <div
                           className="w-8 h-8 rounded-lg flex items-center justify-center"
                           style={{

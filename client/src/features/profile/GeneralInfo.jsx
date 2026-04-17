@@ -1,9 +1,44 @@
+import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { usersApi } from '../../api/client.js';
+import { DEPARTMENT_OPTIONS } from '../../utils/constants.js';
 
 export default function GeneralInfo() {
-  const handleSave = () => {
-    toast.success('General information saved');
+  const { user, updateUser } = useAuth();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    department: '',
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        department: user.department || '',
+      });
+    }
+  }, [user]);
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const result = await usersApi.updateProfile(formData);
+      updateUser(result.data);
+      toast.success('General information saved');
+    } catch (err) {
+      toast.error(err.message || 'Failed to save changes');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -17,26 +52,27 @@ export default function GeneralInfo() {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="flex flex-col gap-2">
             <label className="text-[11px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--color-text-tertiary)' }}>First Name</label>
-            <input type="text" className="filter-input w-full !px-4 !py-3 rounded-xl focus:ring-2 focus:ring-[var(--accent)] transition-all" defaultValue="Admin" />
+            <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="filter-input w-full !px-4 !py-3 rounded-xl focus:ring-2 focus:ring-[var(--accent)] transition-all" />
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-[11px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--color-text-tertiary)' }}>Last Name</label>
-            <input type="text" className="filter-input w-full !px-4 !py-3 rounded-xl focus:ring-2 focus:ring-[var(--accent)] transition-all" defaultValue="User" />
+            <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="filter-input w-full !px-4 !py-3 rounded-xl focus:ring-2 focus:ring-[var(--accent)] transition-all" />
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-[11px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--color-text-tertiary)' }}>Email Address</label>
-          <input type="email" className="filter-input w-full !px-4 !py-3 rounded-xl opacity-70 cursor-not-allowed" defaultValue="admin@inspireholdings.ph" disabled />
+          <input type="email" className="filter-input w-full !px-4 !py-3 rounded-xl opacity-70 cursor-not-allowed" value={user?.email || ''} disabled />
           <p className="text-xs ml-1" style={{ color: 'var(--color-text-tertiary)' }}>Email changes require IT Desk approval.</p>
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-[11px] font-bold uppercase tracking-widest ml-1" style={{ color: 'var(--color-text-tertiary)' }}>Department</label>
-          <select className="filter-input w-full !px-4 !py-3 rounded-xl focus:ring-2 focus:ring-[var(--accent)] transition-all cursor-pointer">
-            <option>Information Technology</option>
-            <option>Human Resources</option>
-            <option>Operations</option>
+          <select name="department" value={formData.department} onChange={handleChange} className="filter-input w-full !px-4 !py-3 rounded-xl focus:ring-2 focus:ring-[var(--accent)] transition-all cursor-pointer">
+            <option value="">None / Unassigned</option>
+            {DEPARTMENT_OPTIONS.map(d => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -44,10 +80,11 @@ export default function GeneralInfo() {
       <div className="px-8 py-5 border-t flex justify-end" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-base)' }}>
         <button 
           onClick={handleSave}
+          disabled={loading}
           className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-sm transition-transform active:scale-95 shadow-md flex-wrap w-full md:w-auto" 
-          style={{ background: 'var(--accent)', color: '#fff' }}
+          style={{ background: 'var(--accent)', color: '#fff', opacity: loading ? 0.7 : 1 }}
         >
-          <Save size={18} /> Save Changes
+          <Save size={18} /> {loading ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
     </div>

@@ -26,8 +26,8 @@ If you open the project root and feel overwhelmed — that's normal. Most of the
 
 | Folder | What's Inside | Who Works Here |
 |--------|---------------|----------------|
-| `client/` | React frontend — all the UI you see in the browser | Frontend devs (A, B, E) |
-| `server/` | Express backend — API, database, business logic | Backend devs (A, B, C, D) |
+| `client/` | React frontend — all the UI you see in the browser | Frontend Team (A, B, C) |
+| `server/` | Express backend — API, database, business logic | Backend Team (D, E) |
 | `nginx/` | Reverse proxy config — only used in production Docker deployment | Tech Lead only |
 | `docs/` | Project documentation (this file, branch strategy, etc.) | Anyone |
 
@@ -209,7 +209,7 @@ Inventory System/
 │   │   │       ├── DepreciationGauge.jsx # Animated SVG circular gauge — green→amber→red by percentage
 │   │   │       ├── EmptyState.jsx        # Centered icon + title + message for empty data states
 │   │   │       ├── ErrorBoundary.jsx     # React class error boundary — catches render crashes
-│   │   │       ├── Modal.jsx             # Reusable modal overlay with backdrop, close button, size variants
+│   │   │       ├── Modal.jsx             # Reusable modal overlay using React Portals with resize handlers
 │   │   │       ├── ProgressBar.jsx       # Horizontal bar with dynamic color (green→amber→red)
 │   │   │       ├── Skeleton.jsx          # Loading placeholder — exports Skeleton, SkeletonCard, SkeletonRow
 │   │   │       ├── StatusTabs.jsx        # Horizontal tab bar with counts (used on Assets page)
@@ -222,7 +222,8 @@ Inventory System/
 │   │   └── utils/                        # Shared utility functions (3 files)
 │   │       ├── constants.js              # STATUS_OPTIONS, CATEGORY_OPTIONS, DEPARTMENT_OPTIONS, DEPRECIATION_METHODS + helpers
 │   │       ├── formatters.js             # formatCurrency (PHP), formatDate, formatPercent, formatNumber, timeAgo
-│   │       └── exportCsv.js             # exportToCsv() — generates CSV blob and triggers download
+│   │       ├── exportCsv.js              # exportToCsv() — generates CSV blob via File System Access API
+│   │       └── exportPdf.js              # exportToPdf() — handles jsPDF & autoTable reports natively
 │   │
 │   ├── vite.config.js                    # Vite config with API proxy to :3001
 │   └── package.json

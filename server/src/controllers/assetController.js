@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { enrichAsset, enrichAssets } from '../services/depreciationService.js';
+import { logActivity } from './activityLogController.js';
 
 const prisma = new PrismaClient();
 
@@ -17,8 +18,11 @@ export async function listAssets(req, res, next) {
       search = '',
       status,
       category,
+      department,
       page = '1',
       pageSize = '20',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = req.query;
 
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -37,20 +41,21 @@ export async function listAssets(req, res, next) {
       ];
     }
 
-    if (status) {
-      where.status = status;
-    }
+    if (status) where.status = status;
+    if (category) where.category = category;
+    if (department) where.department = department;
 
-    if (category) {
-      where.category = category;
-    }
+    // Build orderBy
+    const allowedSortFields = ['name', 'createdAt', 'purchasePrice', 'purchaseDate', 'status', 'category'];
+    const orderField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const orderDir = sortOrder === 'asc' ? 'asc' : 'desc';
 
     const [assets, total] = await Promise.all([
       prisma.asset.findMany({
         where,
         skip,
         take: size,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { [orderField]: orderDir },
       }),
       prisma.asset.count({ where }),
     ]);
@@ -125,6 +130,20 @@ export async function createAsset(req, res, next) {
         assetId: asset.id,
         action: 'CREATED',
         details: `Asset "${asset.name}" created with tag ${assetTag}`,
+        performedBy: `${req.user.firstName} ${req.user.lastName}`,
+      },
+    });
+
+    // Log activity
+    await logActivity(req.user.id, 'ASSET_CREATED', 'Asset', asset.id, `Created asset "${asset.name}" (${assetTag})`, req.ip);
+
+    // Create notification
+    await prisma.notification.create({
+      data: {
+        type: 'ASSIGNMENT',
+        title: `New Asset Added: ${asset.name}`,
+        description: `${assetTag} was added to the inventory by ${req.user.firstName} ${req.user.lastName}.`,
+        relatedAssetId: asset.id,
       },
     });
 
@@ -163,6 +182,8 @@ export async function updateAsset(req, res, next) {
       data,
     });
 
+    const performer = `${req.user.firstName} ${req.user.lastName}`;
+
     // Create audit log for status changes
     if (data.status && data.status !== existing.status) {
       await prisma.auditLog.create({
@@ -170,6 +191,7 @@ export async function updateAsset(req, res, next) {
           assetId: asset.id,
           action: 'STATUS_CHANGED',
           details: `Status changed from ${existing.status} to ${data.status}`,
+          performedBy: performer,
         },
       });
     }
@@ -180,8 +202,12 @@ export async function updateAsset(req, res, next) {
         assetId: asset.id,
         action: 'UPDATED',
         details: `Asset "${asset.name}" updated`,
+        performedBy: performer,
       },
     });
+
+    // Log activity
+    await logActivity(req.user.id, 'ASSET_UPDATED', 'Asset', asset.id, `Updated asset "${asset.name}" (${asset.assetTag})`, req.ip);
 
     res.json({ success: true, data: enrichAsset(asset) });
   } catch (err) {
@@ -211,6 +237,9 @@ export async function deleteAsset(req, res, next) {
     await prisma.asset.delete({
       where: { id: parseInt(id, 10) },
     });
+
+    // Log activity
+    await logActivity(req.user.id, 'ASSET_DELETED', 'Asset', parseInt(id, 10), `Deleted asset "${asset.name}" (${asset.assetTag})`, req.ip);
 
     res.json({
       success: true,
@@ -246,6 +275,7 @@ export async function assignEmployee(req, res, next) {
     }
 
     const wasReassigned = existing.assignedEmployee && existing.assignedEmployee !== employeeName;
+    const performer = `${req.user.firstName} ${req.user.lastName}`;
 
     const asset = await prisma.asset.update({
       where: { id: parseInt(id, 10) },
@@ -264,6 +294,23 @@ export async function assignEmployee(req, res, next) {
         details: wasReassigned
           ? `Reassigned from "${existing.assignedEmployee}" to "${employeeName}"`
           : `Assigned to "${employeeName}"`,
+        performedBy: performer,
+      },
+    });
+
+    // Activity log
+    const actionDetail = wasReassigned
+      ? `Reassigned "${asset.name}" from "${existing.assignedEmployee}" to "${employeeName}"`
+      : `Assigned "${asset.name}" to "${employeeName}"`;
+    await logActivity(req.user.id, wasReassigned ? 'ASSET_REASSIGNED' : 'ASSET_ASSIGNED', 'Asset', asset.id, actionDetail, req.ip);
+
+    // Notification
+    await prisma.notification.create({
+      data: {
+        type: 'ASSIGNMENT',
+        title: `Asset ${wasReassigned ? 'Reassigned' : 'Assigned'}: ${asset.name}`,
+        description: `${asset.assetTag} ${wasReassigned ? 'reassigned' : 'assigned'} to "${employeeName}" by ${performer}.`,
+        relatedAssetId: asset.id,
       },
     });
 
@@ -300,6 +347,7 @@ export async function unassignEmployee(req, res, next) {
     }
 
     const previousEmployee = existing.assignedEmployee;
+    const performer = `${req.user.firstName} ${req.user.lastName}`;
 
     const asset = await prisma.asset.update({
       where: { id: parseInt(id, 10) },
@@ -316,8 +364,12 @@ export async function unassignEmployee(req, res, next) {
         action: 'UNASSIGNED',
         employeeName: previousEmployee,
         details: `Unassigned from "${previousEmployee}"`,
+        performedBy: performer,
       },
     });
+
+    // Activity log
+    await logActivity(req.user.id, 'ASSET_UNASSIGNED', 'Asset', asset.id, `Unassigned "${asset.name}" from "${previousEmployee}"`, req.ip);
 
     res.json({ success: true, data: enrichAsset(asset) });
   } catch (err) {

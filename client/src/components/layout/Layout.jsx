@@ -4,11 +4,11 @@ import Header from './Header.jsx';
 
 export default function Layout({ isDark, onToggleTheme, children }) {
   return (
-    <div className="flex h-screen overflow-hidden transition-colors duration-300">
+    <div className="app-layout">
       <Sidebar />
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="app-main">
         <Header isDark={isDark} onToggleTheme={onToggleTheme} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8 lg:p-10 xl:p-12">
+        <main className="app-content">
           {children || <Outlet />}
         </main>
       </div>

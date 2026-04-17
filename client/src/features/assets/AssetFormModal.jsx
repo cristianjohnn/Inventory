@@ -111,7 +111,7 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={isEdit ? 'Edit Asset' : 'Add New Asset'} size="lg">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
 
         {/* General Info Section */}
         <div>
@@ -259,7 +259,7 @@ export default function AssetFormModal({ isOpen, onClose, asset = null, onSucces
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+        <div className="flex justify-end gap-3 pt-6 mt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
           <button type="button" onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>

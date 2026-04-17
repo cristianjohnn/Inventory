@@ -110,81 +110,56 @@ test: add asset CRUD tests
 
 > For the full contributing guide, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
----
+| Role | Team | Domain | Scope |
+|------|------|--------|-------|
+| **A** | Frontend | Asset Management UI | Asset lists, filters, detail pages, forms, assignment modals |
+| **B** | Frontend | Analytics UI | Dashboards, Recharts mapping, reports, export utilities |
+| **C** | Frontend | Core UI Component System | App layouts, UI primitives, CSS theming, auth/profile |
+| **D** | Backend | Core API & Data | Express routers, controller business logic, Prisma queries |
+| **E** | Backend | Services & Infrastructure | Depreciation mathematics, global error handling, Zod |
 
-## Developer Assignments
-
-| Role | Domain | Scope |
-|------|--------|-------|
-| **A** | Asset Management | Full-stack. Asset CRUD, search, filters, assignment. |
-| **B** | Dashboard & Analytics | Full-stack. Stats, charts, activity feed, reports. |
-| **C** | Depreciation Engine | Backend only. All 3 depreciation methods. |
-| **D** | Middleware & Validation | Backend only. Error handling, Zod schemas, auth. |
-| **E** | UI Components & Layout | Frontend only. Design system, layout, theming, profile. |
-
-### Developer A — Asset Management
-
-**Backend:**
-- `server/src/controllers/assetController.js` — CRUD + assign/unassign/history (7 handler functions)
-- `server/src/routes/assets.js` — Route definitions + validation middleware wiring
-
-**Frontend:**
-- `client/src/features/assets/AssetsPage.jsx` — Table list with search, status tabs, pagination, CSV export
-- `client/src/features/assets/AssetDetailPage.jsx` — Detail view with depreciation gauge, specs grid, assignment card, audit timeline
-- `client/src/features/assets/AssetFormModal.jsx` — Create/edit modal (4 sections: general, financial, depreciation, additional info)
-- `client/src/features/assets/AssignModal.jsx` — Employee name input modal for assigning assets
-
-**Example branches:** `feature/asset-bulk-delete`, `feature/asset-search-filters`
+### Developer A — Frontend: Asset Management
+**Frontend Scope:**
+- `client/src/features/assets/AssetsPage.jsx`
+- `client/src/features/assets/AssetDetailPage.jsx`
+- `client/src/features/assets/AssetFormModal.jsx`
+- `client/src/features/assets/AssignModal.jsx`
+- **Example branches:** `feature/ui-asset-search`, `feature/ui-assign-modals`
 
 ---
 
-### Developer B — Dashboard & Analytics
-
-**Backend:**
-- `server/src/controllers/dashboardController.js` — Aggregation: status counts, portfolio totals, category values, recent activity
-- `server/src/routes/dashboard.js` — Single GET route
-
-**Frontend:**
-- `client/src/features/dashboard/DashboardPage.jsx` — 5 KPI stat cards, category bar chart, status donut, depreciation forecast, activity feed
-- `client/src/features/reports/ReportsPage.jsx` — Financial summary cards, category/dept bar charts, depreciation method pie chart, top-15 depreciation schedule table
-
-**Example branches:** `feature/dashboard-charts`, `feature/portfolio-valuation`
+### Developer B — Frontend: Analytics
+**Frontend Scope:**
+- `client/src/features/dashboard/DashboardPage.jsx`
+- `client/src/features/reports/ReportsPage.jsx`
+- `client/src/utils/exportCsv.js`, `exportPdf.js`
+- **Example branches:** `feature/ui-dashboard-tiles`, `feature/pdf-export`
 
 ---
 
-### Developer C — Depreciation Engine
-
-**Backend:**
-- `server/src/services/depreciationService.js` — 3 calculation methods (straight-line, double declining, units of production) + `enrichAsset()`/`enrichAssets()` helpers
-
-**Example branches:** `feature/depreciation-engine`, `fix/salvage-value-calc`
-
----
-
-### Developer D — Middleware & Validation
-
-**Backend:**
-- `server/src/middleware/errorHandler.js` — Global error handler (Prisma, Zod, generic errors)
-- `server/src/middleware/validate.js` — Zod schema validation middleware factory
-- `server/src/utils/schemas.js` — Zod schemas: `createAssetSchema`, `updateAssetSchema`, `assignEmployeeSchema`
-
-**Frontend (auth):**
-- `client/src/features/auth/LoginPage.jsx` — Branded login page (mock UI — no real auth backend yet)
-
-**Example branches:** `feature/auth-middleware`, `feature/rate-limiting`
+### Developer C — Frontend: UI Foundation
+**Frontend Scope:**
+- `client/src/components/layout/` & `client/src/components/ui/`
+- `client/src/features/profile/`, `features/auth/`, `features/notifications/`
+- `client/src/index.css` (Theming logic)
+- **Example branches:** `feature/dark-mode`, `feature/modal-portals`
 
 ---
 
-### Developer E — UI Components & Layout
+### Developer D — Backend: Core API
+**Backend Scope:**
+- `server/src/controllers/assetController.js` (+ `dashboardController.js`)
+- `server/src/routes/assets.js` (+ `dashboard.js`)
+- **Example branches:** `feature/api-asset-filtering`, `feature/api-bulk-delete`
 
-**Frontend:**
-- `client/src/components/layout/` — Layout, Sidebar, Header, HeaderNotifications, HeaderProfile (5 files)
-- `client/src/components/ui/` — ActionMenu, Badge, ConfirmDialog, DepreciationGauge, EmptyState, ErrorBoundary, Modal, ProgressBar, Skeleton, StatusTabs, ThemeToggle (11 files)
-- `client/src/hooks/` — useDebounce, useTheme (2 files)
-- `client/src/features/notifications/NotificationsPage.jsx` — Full-page notification list
-- `client/src/features/profile/` — ProfilePage, GeneralInfo, PreferencesView, SecurityView, RolePermissionsView (5 files)
+---
 
-**Example branches:** `feature/sidebar-redesign`, `feature/dark-mode-improvements`
+### Developer E — Backend: Services
+**Backend Scope:**
+- `server/src/services/depreciationService.js`
+- `server/src/middleware/` (errorHandler, validation)
+- `server/src/utils/schemas.js` (Zod validation schemas)
+- **Example branches:** `feature/depreciation-engine`, `feature/schema-val`
 
 ---
 
@@ -201,40 +176,32 @@ Inventory/
 │   │   └── seed.js                    🔒 SHARED
 │   ├── src/
 │   │   ├── index.js                   🔒 SHARED
-│   │   ├── controllers/
-│   │   │   ├── assetController.js     → Dev A
-│   │   │   └── dashboardController.js → Dev B
-│   │   ├── routes/
-│   │   │   ├── assets.js              → Dev A
-│   │   │   └── dashboard.js           → Dev B
-│   │   ├── services/
-│   │   │   └── depreciationService.js → Dev C
-│   │   ├── middleware/
-│   │   │   ├── errorHandler.js        → Dev D
-│   │   │   └── validate.js            → Dev D
-│   │   └── utils/
-│   │       └── schemas.js             → Dev D
+│   │   ├── controllers/               → Dev D 
+│   │   ├── routes/                    → Dev D
+│   │   ├── services/                  → Dev E
+│   │   ├── middleware/                → Dev E
+│   │   └── utils/                     → Dev E
 │   └── Dockerfile                     → Tech Lead
 │
 ├── client/src/
 │   ├── App.jsx                        🔒 SHARED
 │   ├── main.jsx                       🔒 SHARED
-│   ├── index.css                      🔒 SHARED
+│   ├── index.css                      → Dev C
 │   ├── api/
 │   │   └── client.js                  🔒 SHARED
-│   ├── assets/                        → Static images (hero.png, etc.)
+│   ├── assets/                        
 │   ├── features/
-│   │   ├── assets/                    → Dev A  (4 files: AssetsPage, AssetDetailPage, AssetFormModal, AssignModal)
-│   │   ├── auth/                      → Dev D  (1 file: LoginPage)
-│   │   ├── dashboard/                 → Dev B  (1 file: DashboardPage)
-│   │   ├── notifications/             → Dev E  (1 file: NotificationsPage)
-│   │   ├── profile/                   → Dev E  (5 files: ProfilePage + 4 sub-views)
-│   │   └── reports/                   → Dev B  (1 file: ReportsPage)
+│   │   ├── assets/                    → Dev A  (Assets components & modals)
+│   │   ├── auth/                      → Dev C  
+│   │   ├── dashboard/                 → Dev B  (Dashboard components)
+│   │   ├── notifications/             → Dev C  
+│   │   ├── profile/                   → Dev C  
+│   │   └── reports/                   → Dev B  (Reports & charting)
 │   ├── components/
-│   │   ├── layout/                    → Dev E  (5 files: Layout, Sidebar, Header, HeaderNotifications, HeaderProfile)
-│   │   └── ui/                        → Dev E  (11 files)
-│   ├── hooks/                         → Dev E  (2 files: useDebounce, useTheme)
-│   └── utils/                         🔒 SHARED (3 files: constants, formatters, exportCsv)
+│   │   ├── layout/                    → Dev C  
+│   │   └── ui/                        → Dev C  
+│   ├── hooks/                         → Dev C  
+│   └── utils/                         → Dev B  (Export utilities)
 │
 ├── nginx/                             → Tech Lead
 │   ├── Dockerfile                     → Tech Lead

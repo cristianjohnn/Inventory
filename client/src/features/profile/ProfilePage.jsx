@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { User, Settings, Shield, Key } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext.jsx';
 import GeneralInfo from './GeneralInfo.jsx';
 import PreferencesView from './PreferencesView.jsx';
 import SecurityView from './SecurityView.jsx';
@@ -8,6 +9,7 @@ import RolePermissionsView from './RolePermissionsView.jsx';
 
 export default function ProfilePage() {
   const location = useLocation();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
 
   // Listen to navigation state if somebody clicks "Preferences" from the dropdown
@@ -26,7 +28,7 @@ export default function ProfilePage() {
           className="w-20 h-20 rounded-[20px] flex items-center justify-center text-3xl font-bold shadow-sm" 
           style={{ background: 'var(--accent-bg-strong)', color: 'var(--accent)' }}
         >
-          A
+          {user?.firstName?.[0]?.toUpperCase() || 'U'}
         </div>
         <div>
           <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Profile Settings</h1>

@@ -4,8 +4,17 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import { errorHandler } from './middleware/errorHandler.js';
+import { requireAuth } from './middleware/auth.js';
+import { generateAutoNotifications } from './controllers/notificationController.js';
+
+// Route imports
+import authRoutes from './routes/auth.js';
 import assetRoutes from './routes/assets.js';
 import dashboardRoutes from './routes/dashboard.js';
+import userRoutes from './routes/users.js';
+import notificationRoutes from './routes/notifications.js';
+import activityLogRoutes from './routes/activityLogs.js';
+import searchRoutes from './routes/search.js';
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -48,7 +57,7 @@ app.use('/api/', limiter);
 // Routes
 // =============================================
 
-// Health check
+// Health check (public)
 app.get('/api/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -72,9 +81,16 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// API routes
-app.use('/api/assets', assetRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+// Auth routes (login is public, /me is protected inside the route)
+app.use('/api/auth', authRoutes);
+
+// Protected API routes — all require authentication
+app.use('/api/assets', requireAuth, assetRoutes);
+app.use('/api/dashboard', requireAuth, dashboardRoutes);
+app.use('/api/users', requireAuth, userRoutes);
+app.use('/api/notifications', requireAuth, notificationRoutes);
+app.use('/api/activity-logs', requireAuth, activityLogRoutes);
+app.use('/api/search', requireAuth, searchRoutes);
 
 // =============================================
 // Error Handling
@@ -90,6 +106,16 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Auto-generate notifications on startup
+  generateAutoNotifications().then(() => {
+    console.log('🔔 Auto-notifications checked');
+  });
+
+  // Check for auto-notifications every hour
+  setInterval(() => {
+    generateAutoNotifications();
+  }, 60 * 60 * 1000);
 });
 
 // Graceful shutdown

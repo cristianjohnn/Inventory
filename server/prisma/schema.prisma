@@ -14,8 +14,6 @@ datasource db {
 // Enums
 // =====================
 
-// Removed Category enum to allow custom categories
-
 enum AssetStatus {
   IN_USE
   AVAILABLE
@@ -44,9 +42,42 @@ enum Department {
   EXECUTIVE
 }
 
+enum UserRole {
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+enum NotificationType {
+  DEPRECIATION_WARNING
+  WARRANTY_EXPIRING
+  AUDIT_COMPLETE
+  SYSTEM_UPDATE
+  ASSIGNMENT
+  IMPORT
+}
+
 // =====================
 // Models
 // =====================
+
+model User {
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole    @default(VIEWER)
+  department   Department? @default(IT_DEPARTMENT)
+  preferences  Json        @default("{}")
+  lastPasswordChanged DateTime @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  activityLogs ActivityLog[]
+
+  @@index([email])
+}
 
 model Asset {
   id                 Int                @id @default(autoincrement())
@@ -70,7 +101,8 @@ model Asset {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  auditLogs AuditLog[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
 
   @@index([status])
   @@index([category])
@@ -90,4 +122,36 @@ model AuditLog {
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([assetId])
+}
+
+model Notification {
+  id             Int              @id @default(autoincrement())
+  type           NotificationType
+  title          String
+  description    String
+  isRead         Boolean          @default(false)
+  relatedAssetId Int?
+  createdAt      DateTime         @default(now())
+
+  relatedAsset Asset? @relation(fields: [relatedAssetId], references: [id], onDelete: SetNull)
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  action      String
+  entity      String
+  entityId    Int?
+  details     String?
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([entity])
 }
